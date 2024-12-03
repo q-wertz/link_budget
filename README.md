@@ -1,12 +1,10 @@
-[TOC]
-
-## Link budget calculator
+# Link budget calculator
 
 This is a link budget calculator for EM waves. Additionally the DAC conversion can be investigated.
 
-### Usage
+## Usage
 
-#### Installing required Python dependencies
+### Installing required Python dependencies
 
 For packaging and dependency management [Poetry](https://python-poetry.org/) is used. Refer to the [documentation](https://python-poetry.org/docs) for in-depth information.
 
