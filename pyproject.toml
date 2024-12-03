@@ -1,0 +1,1055 @@
+
+[build-system]
+# Poetry (https://python-poetry.org/docs) is used for building and resolving dependencies.
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+name = "Link budget calculator"
+version = "0.1.0"
+description = "Tool for calculating the link budget of transmissions and ."
+authors = ["Clemens Sonnleitner <clemens.sonnleitner@web.de>"]
+maintainers = ["Clemens Sonnleitner <clemens.sonnleitner@web.de>"]
+readme = "README.md"
+repository = "https://github.com/q-wertz/link_budget"
+#documentation = ""
+keywords = ["signal", "attenuation", "frequency"]
+package-mode = false
+
+[tool.poetry.urls]
+issues = "https://github.com/q-wertz/link_budget/issues"
+
+[tool.poetry.dependencies]
+python = ">=3.11, <3.13"
+numpy = ">=2.0.0"
+marimo = "^0.9.27"
+altair = "^5.5.0"
+pandas = "^2.2.3"
+
+[tool.poetry.group.dev.dependencies]
+# Linters & Autoformatters
+docformatter = ">=1.7.5"
+flake8 = ">=7.0.0"
+flake8-pydocstyle = "*"
+flake8-codeclimate = "*"
+mypy = {extras = ["d"], version = "*"}
+pydocstyle = ">=6.3.0"
+pylint = "*"
+pylint-codeclimate = "*"
+pylint-exit = ">=1.2.0"
+ruff = ">=0.8"
+# Additional stubs
+pandas-stubs = "*"
+# Unittesting
+hypothesis = {extras = ["numpy"], version = ">=6.102.4"}
+pytest = ">=8.2.0"
+pytest-cov = ">=5.0"
+pytest-mock = ">=3.12"
+pytest-profiling = "^1.7.0"
+pytest-xdist = ">=3.5"
+# Other
+deptry = ">=0.12.0"        # Check for issues with dependencies in a Python project
+pyenchant = ">=3.0"        # Python language bindings for the Enchant spellchecking library
+avro = ">=1.11.3"
+vulture = ">=2.11"
+setuptools = ">=69.5.1"
+tuna = "^0.5.11"
+pytest-check = "^2.3.1"
+basedpyright = "^1.13.3"
+
+
+[tool.mypy]
+# Config for 'mypy'
+# See https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml-file for more details
+python_version = "3.12"
+plugins = "numpy.typing.mypy_plugin"
+files = [
+    'adsb_simulator/**/*.py',
+    'tests/**/*.py',
+]
+exclude = [
+    'gui/',
+    'notes/',
+]
+warn_return_any = true
+warn_unused_configs = true
+allow_redefinition = true            # Allows variables to be redefined with an arbitrary type, as long as the redefinition is in the same block and nesting level as the original definition.
+disallow_untyped_defs = true
+disallow_incomplete_defs = true      # Disallows defining functions with incomplete type annotations.
+check_untyped_defs = true            # Type-checks the interior of functions without type annotations.
+no_implicit_optional = true          # Changes the treatment of arguments with a default value of None by not implicitly making their type Optional.
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+# mypy per-module options
+module = [
+    "scipy",
+    "scipy.*",
+    "mpl_toolkits.mplot3d",
+    "traffic",
+    "coloredlogs",          # Remove when issue https://github.com/xolox/python-coloredlogs/issues/93 is solved
+    "haggis.*",
+    "semantic_version",     # Remove when issue https://github.com/rbarrois/python-semanticversion/issues/138 is solved
+    "dynaconf",             # Remove when issue https://github.com/dynaconf/dynaconf/issues/448 is solved
+    "statsmodels",          # Remove when issue https://github.com/statsmodels/statsmodels/issues/8679 is solved
+    "statsmodels.api",      # Remove when issue https://github.com/statsmodels/statsmodels/issues/8679 is solved
+    "pytest_check",         # Remove when issue https://github.com/okken/pytest-check/issues/163 is solved
+]
+ignore_missing_imports = true
+
+
+[tool.basedpyright]
+# Config for 'basedpyright'
+# See https://docs.basedpyright.com for more details
+typeCheckingMode = "standard"  # TODO: Set to "recommended" or "all" (but reports many errors)
+useLibraryCodeForTypes = false
+
+
+[tool.coverage]
+# Config for 'coverage'
+# See https://coverage.readthedocs.io for more details
+[tool.coverage.run]
+omit = [
+    # omit anything in a .local directory anywhere
+    "*/.local/*",
+    # omit everything in /usr
+    "/usr/*",
+    # omit tests
+    "tests/*",
+]
+
+
+[tool.pydocstyle]
+# Config for 'pydocstyle'
+# See http://www.pydocstyle.org/en/stable/usage.html for more details
+convention = "numpy"
+# Ignore the notes folder and all dirs that start with a dot
+match-dir = '[^\.|notes\/].*'
+
+
+[tool.docformatter]
+# Config for the autoformatter for docstrings 'docformatter'
+# See https://docformatter.readthedocs.io/en/latest/configuration.html for more details
+recursive = true
+in-place = true
+wrap-summaries = 120
+wrap-descriptions = 100
+
+
+[tool.rstcheck]
+# Config for 'rstcheck', a CLI application for checking the syntax of reStructuredText and code blocks nested within it.
+# See https://rstcheck.readthedocs.io/en/latest/usage/config/ for more details
+report_level = "INFO"
+
+
+[tool.doc8]
+# Config for 'doc8', a style checker for rst
+# See https://doc8.readthedocs.io/en/latest/ for more details
+ignore = ["D001"]
+allow-long-titles = true
+
+
+[tool.ruff]
+# Config for 'ruff'
+# See https://docs.astral.sh/ruff/
+# Exclude the following directories
+#exclude = ["notes"]
+line-length = 100
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "F",     # pyflakes
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "C90",   # mccabe
+    "I",     # isort
+    "N",     # pep8-naming
+    "D",     # pydocstyle
+    "UP",    # pyupgrade
+    "YTT",   # flake8-2020
+    "ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    # "TRIO",  # flake8-trio
+    # "S",     # flake8-bandit         # TODO: Activate later
+    # "BLE",   # flake8-blind-except
+    "FBT",   # flake8-boolean-trap
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    # "COM",   # flake8-commas          # TODO: Activate later
+    # "CPY",   # flake8-copyright
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "T10",   # flake8-debugger
+    # "DJ",    # flake8-django
+    "EM",    # flake8-errmsg
+    "EXE",   # flake8-executable
+    "FA",    # flake8-future-annotations
+    "ISC",   # flake8-implicit-str-concat
+    "ICN",   # flake8-import-conventions
+    "G",     # flake8-logging-format
+    "INP",   # flake8-no-pep420
+    "PIE",   # flake8-pie
+    "T20",   # flake8-print
+    "PYI",   # flake8-pyi
+    "PT",    # flake8-pytest-style
+    "Q",     # flake8-quotes
+    "RSE",   # flake8-raise
+    "RET",   # flake8-return
+    "SLF",   # flake8-self
+    "SLOT",  # flake8-slots
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+    "TCH",   # flake8-type-checking
+    "INT",   # flake8-gettext
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "TD",    # flake8-todos
+    # "FIX",   # flake8-fixme          # TODO: Activate later
+    "ERA",   # eradicate
+    "PD",    # pandas-vet
+    "PGH",   # pygrep-hooks
+    "PL",    # Pylint
+    "TRY",   # tryceratops
+    # "FLY",   # flynt
+    "NPY",   # NumPy-specific rules
+    # "AIR",   # Airflow
+    "PERF",  # Perflint
+    "FURB",  # refurb
+    "LOG",   # flake8-logging
+    "RUF",   # Ruff-specific rules
+]
+
+ignore = [
+    "E501",    # Currently annoying, as also the docstrings are triggered
+    "ANN101",  # Missing type annotation for `self` in method      # Rule is deprecated in ruff v0.2.0
+    "ANN102",  # Missing type annotation for `cls` in classmethod  # Rule is deprecated in ruff v0.2.0
+    "TRY003",  # Avoid specifying long messages outside the exception class  # TODO: Maybe reactivate
+    "PLR2004", # Magic value used in comparison
+    "TD002",   # missing-todo-author
+    "TD003",   # missing-todo-link (currently not for every TODO a new issue is created)
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["I", "D", "TID", "TCH", "TD", "EM"]
+
+# Allowed confusable unicode characters
+allowed-confusables = [
+    " ",  # Used in docstrings for separation of units
+]
+
+task-tags = ["TODO", "FIXME", "HACK", "MARK"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore Function name `...` should be lowercase in this file as they are named like this on purpose
+"adsb_simulator/lib/kalmanfilter/kf_objects/scaling_factors.py" = ["N802"]
+# Ignore "Class name `...` should use CapWords convention" in unittest files
+"tests/**/test_*.py" = ["N801", "N803"]
+"tests/**/conftest.py" = ["N802", "N803"]
+
+[tool.ruff.lint.pylint]
+max-args = 7
+
+[tool.ruff.lint.isort]
+required-imports = []
+
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true  # Ignore "line too long" (E501) for tasks
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = [
+    # These variable have snake-case naming as they are in the SQL db
+    "bsId",
+    "kfSId",
+    "kfSId_pred",
+    "kfSId_upd",
+    "kfSTime",
+    "mId",
+    "numObs",
+    "numBsClusters",
+    "odNId",
+    "vehId",
+    # These have a special "constant-like" meaning
+    "VEH_POS",
+    "VEH_VEL",
+    "VEH_PV_RATIO",
+    "VEH_STATE",
+    "BS_STATE",
+    "VEH_PMATRIX_SCALING",
+    "BS_PMATRIX_SCALING",
+    "VEH_QMATRIX_SCALING",
+    "BS_QMATRIX_SCALING",
+    # Fixed unit names
+    "W",
+    "dBm",
+    "dBW",
+    # Other fixed names
+    "r_N",
+    "r_E",
+    "var_vN",
+    "var_vE",
+    "var_vD",
+    "rankH",
+    "rankPH_T",
+    "rankS",
+    "rankRedH",
+    "rankRedHDeficit",
+]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+
+[tool.vulture]
+# See https://github.com/jendrikseipp/vulture
+# exclude = ["*file*.py", "dir/"]
+# ignore_decorators = ["@app.route", "@require_*"]
+# ignore_names = ["visit_*", "do_*"]
+# make_whitelist = true
+min_confidence = 70
+paths = ["adsb_simulator", "tests"]
+sort_by_size = true
+# verbose = true
+
+
+[tool.pytest.ini_options]
+# See https://docs.pytest.org/en/7.1.x/reference/customize.html#pyproject-toml
+#   --strict-markers: any unknown marks applied with the @pytest.mark.name_of_the_mark decorator will trigger an error
+#   -x --pdb: drop to PDB on first failure, then end test session  -> https://github.com/pytest-dev/pytest/issues/10625
+#   -ra: Print all except 'passed' and 'passed with output' in short test summary info
+#   -n auto shouldn't be selected here as it messes with debugging
+addopts = "--strict-markers -ra --cov=adsb_simulator --cov-report lcov"
+testpaths = ["tests"]
+
+
+[tool.pylint.main]
+# Analyse import fallback blocks. This can be used to support both Python 2 and 3
+# compatible code, which means that the block might have code that exists only in
+# one or another interpreter, leading to false positives when analysed.
+# analyse-fallback-blocks =
+
+# Clear in-memory caches upon conclusion of linting. Useful if running pylint in
+# a server-like mode.
+# clear-cache-post-run =
+
+# Always return a 0 (non-error) status code, even if lint errors are found. This
+# is primarily useful in continuous integration scripts.
+# exit-zero =
+
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code.
+# extension-pkg-allow-list =
+
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code. (This is an alternative name to extension-pkg-allow-list
+# for backward compatibility.)
+# extension-pkg-whitelist =
+
+# Return non-zero exit code if any of these messages/categories are detected,
+# even if score is above --fail-under value. Syntax same as enable. Messages
+# specified are enabled, while categories only check already-enabled messages.
+# fail-on =
+
+# Specify a score threshold under which the program will exit with error.
+fail-under = 9.0
+
+# Interpret the stdin as a python script, whose filename needs to be passed as
+# the module_or_package argument.
+# from-stdin =
+
+# Files or directories to be skipped. They should be base names, not paths.
+ignore = ["CVS"]
+
+# Add files or directories matching the regular expressions patterns to the
+# ignore-list. The regex matches against paths and can be in Posix or Windows
+# format. Because '\\' represents the directory delimiter on Windows systems, it
+# can't be used as an escape character.
+# ignore-paths =
+
+# Files or directories matching the regular expression patterns are skipped. The
+# regex matches against base names, not paths. The default value ignores Emacs
+# file locks
+ignore-patterns = ["^\\.#"]
+
+# List of module names for which member attributes should not be checked (useful
+# for modules/projects where namespaces are manipulated during runtime and thus
+# existing member attributes cannot be deduced by static analysis). It supports
+# qualified module names, as well as Unix pattern matching.
+# ignored-modules =
+
+# Python code to execute, usually for sys.path manipulation such as
+# pygtk.require().
+# init-hook =
+
+# Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
+# number of processors available to use, and will cap the count on Windows to
+# avoid hangs.
+jobs = 0
+
+# Control the amount of potential inferred values when inferring a single object.
+# This can help the performance when dealing with large functions or complex,
+# nested conditions.
+limit-inference-results = 100
+
+# List of plugins (as comma separated values of python module names) to load,
+# usually to register additional checkers.
+load-plugins = [
+    "pylint.extensions.check_elif",
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.docparams",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.set_membership",
+    "pylint.extensions.code_style",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.typing",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.comparison_placement",
+]
+
+# Pickle collected data for later comparisons.
+persistent = true
+
+# Minimum Python version to use for version dependent checks. Will default to the
+# version used to run pylint.
+# py-version = "3.11"
+
+# Discover python modules and packages in the file system subtree.
+# recursive =
+
+# Add paths to the list of the source roots. Supports globbing patterns. The
+# source root is an absolute path or a path relative to the current working
+# directory used to determine a package namespace for modules located under the
+# source root.
+# source-roots =
+
+# When enabled, pylint would attempt to guess common misconfiguration and emit
+# user-friendly hints instead of false-positive error messages.
+suggestion-mode = true
+
+# Allow loading of arbitrary C extensions. Extensions are imported into the
+# active Python interpreter and may run arbitrary code.
+# unsafe-load-any-extension =
+
+[tool.pylint.basic]
+# Naming style matching correct argument names.
+argument-naming-style = "snake_case"
+
+# Regular expression matching correct argument names. Overrides argument-naming-
+# style. If left empty, argument names will be checked with the set naming style.
+# argument-rgx =
+
+# Naming style matching correct attribute names.
+attr-naming-style = "snake_case"
+
+# Regular expression matching correct attribute names. Overrides attr-naming-
+# style. If left empty, attribute names will be checked with the set naming
+# style.
+# attr-rgx =
+
+# Bad variable names which should always be refused, separated by a comma.
+bad-names = ["foo", "bar", "baz", "toto", "tutu", "tata"]
+
+# Bad variable names regexes, separated by a comma. If names match any regex,
+# they will always be refused
+# bad-names-rgxs =
+
+# Naming style matching correct class attribute names.
+class-attribute-naming-style = "any"
+
+# Regular expression matching correct class attribute names. Overrides class-
+# attribute-naming-style. If left empty, class attribute names will be checked
+# with the set naming style.
+# class-attribute-rgx =
+
+# Naming style matching correct class constant names.
+class-const-naming-style = "UPPER_CASE"
+
+# Regular expression matching correct class constant names. Overrides class-
+# const-naming-style. If left empty, class constant names will be checked with
+# the set naming style.
+# class-const-rgx =
+
+# Naming style matching correct class names.
+class-naming-style = "PascalCase"
+
+# Regular expression matching correct class names. Overrides class-naming-style.
+# If left empty, class names will be checked with the set naming style.
+# class-rgx =
+
+# Naming style matching correct constant names.
+const-naming-style = "UPPER_CASE"
+
+# Regular expression matching correct constant names. Overrides const-naming-
+# style. If left empty, constant names will be checked with the set naming style.
+# const-rgx =
+
+# Minimum line length for functions/classes that require docstrings, shorter ones
+# are exempt.
+docstring-min-length = -1
+
+# Naming style matching correct function names.
+function-naming-style = "snake_case"
+
+# Regular expression matching correct function names. Overrides function-naming-
+# style. If left empty, function names will be checked with the set naming style.
+# function-rgx =
+
+# Good variable names which should always be accepted, separated by a comma.
+good-names = ["i", "j", "k", "ex", "Run", "_"]
+
+# Good variable names regexes, separated by a comma. If names match any regex,
+# they will always be accepted
+# good-names-rgxs =
+
+# Include a hint for the correct naming format with invalid-name.
+# include-naming-hint =
+
+# Naming style matching correct inline iteration names.
+inlinevar-naming-style = "any"
+
+# Regular expression matching correct inline iteration names. Overrides
+# inlinevar-naming-style. If left empty, inline iteration names will be checked
+# with the set naming style.
+# inlinevar-rgx =
+
+# Naming style matching correct method names.
+method-naming-style = "snake_case"
+
+# Regular expression matching correct method names. Overrides method-naming-
+# style. If left empty, method names will be checked with the set naming style.
+# method-rgx =
+
+# Naming style matching correct module names.
+module-naming-style = "snake_case"
+
+# Regular expression matching correct module names. Overrides module-naming-
+# style. If left empty, module names will be checked with the set naming style.
+# module-rgx =
+
+# Colon-delimited sets of names that determine each other's naming style when the
+# name regexes allow several styles.
+# name-group =
+
+# Regular expression which should only match function or class names that do not
+# require a docstring.
+no-docstring-rgx = "^_"
+
+# List of decorators that produce properties, such as abc.abstractproperty. Add
+# to this list to register other decorators that produce valid properties. These
+# decorators are taken in consideration only for invalid-name.
+property-classes = ["abc.abstractproperty"]
+
+# Regular expression matching correct type alias names. If left empty, type alias
+# names will be checked with the set naming style.
+# typealias-rgx =
+
+# Regular expression matching correct type variable names. If left empty, type
+# variable names will be checked with the set naming style.
+# typevar-rgx =
+
+# Naming style matching correct variable names.
+variable-naming-style = "snake_case"
+
+# Regular expression matching correct variable names. Overrides variable-naming-
+# style. If left empty, variable names will be checked with the set naming style.
+# variable-rgx =
+
+[tool.pylint.classes]
+# Warn about protected attribute access inside special methods
+# check-protected-access-in-special-methods =
+
+# List of method names used to declare (i.e. assign) instance attributes.
+defining-attr-methods = ["__init__", "__new__", "setUp", "asyncSetUp", "__post_init__"]
+
+# List of member names, which should be excluded from the protected access
+# warning.
+exclude-protected = ["_asdict", "_fields", "_replace", "_source", "_make", "os._exit"]
+
+# List of valid names for the first argument in a class method.
+valid-classmethod-first-arg = ["cls"]
+
+# List of valid names for the first argument in a metaclass class method.
+valid-metaclass-classmethod-first-arg = ["mcs"]
+
+[tool.pylint.design]
+# List of regular expressions of class ancestor names to ignore when counting
+# public methods (see R0903)
+# exclude-too-few-public-methods =
+
+# List of qualified class names to ignore when counting class parents (see R0901)
+# ignored-parents =
+
+# Maximum number of arguments for function / method.
+max-args = 5
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes = 7
+
+# Maximum number of boolean expressions in an if statement (see R0916).
+max-bool-expr = 5
+
+# Maximum number of branch for function / method body.
+max-branches = 12
+
+# Maximum number of locals for function / method body.
+max-locals = 15
+
+# Maximum number of parents for a class (see R0901).
+max-parents = 7
+
+# Maximum number of public methods for a class (see R0904).
+max-public-methods = 20
+
+# Maximum number of return / yield for function / method body.
+max-returns = 6
+
+# Maximum number of statements in function / method body.
+max-statements = 50
+
+# Minimum number of public methods for a class (see R0903).
+min-public-methods = 2
+
+[tool.pylint.exceptions]
+# Exceptions that will emit a warning when caught.
+overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception"]
+
+[tool.pylint.format]
+# Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
+# expected-line-ending-format =
+
+# Regexp for a line that is allowed to be longer than the limit.
+ignore-long-lines = "^\\s*(# )?<?https?://\\S+>?$"
+
+# Number of spaces of indent required inside a hanging or continued line.
+indent-after-paren = 4
+
+# String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
+# tab).
+indent-string = "    "
+
+# Maximum number of characters on a single line.
+max-line-length = 100
+
+# Maximum number of lines in a module.
+max-module-lines = 2000
+
+# Allow the body of a class to be on the same line as the declaration if body
+# contains single statement.
+# single-line-class-stmt =
+
+# Allow the body of an if to be on the same line as the test if there is no else.
+# single-line-if-stmt =
+
+[tool.pylint.imports]
+# List of modules that can be imported at any level, not just the top level one.
+# allow-any-import-level =
+
+# Allow explicit reexports by alias from a package __init__.
+# allow-reexport-from-package =
+
+# Allow wildcard imports from modules that define __all__.
+# allow-wildcard-with-all =
+
+# Deprecated modules which should not be used, separated by a comma.
+# deprecated-modules =
+
+# Output a graph (.gv or any supported image format) of external dependencies to
+# the given file (report RP0402 must not be disabled).
+# ext-import-graph =
+
+# Output a graph (.gv or any supported image format) of all (i.e. internal and
+# external) dependencies to the given file (report RP0402 must not be disabled).
+# import-graph =
+
+# Output a graph (.gv or any supported image format) of internal dependencies to
+# the given file (report RP0402 must not be disabled).
+# int-import-graph =
+
+# Force import order to recognize a module as part of the standard compatibility
+# libraries.
+# known-standard-library =
+
+# Force import order to recognize a module as part of a third party library.
+known-third-party = ["enchant"]
+
+# Couples of modules and preferred modules, separated by a comma.
+# preferred-modules =
+
+[tool.pylint.logging]
+# The type of string formatting that logging methods do. `old` means using %
+# formatting, `new` is for `{}` formatting.
+logging-format-style = "old"
+
+# Logging modules to check that the string format arguments are in logging
+# function parameter format.
+logging-modules = ["logging"]
+
+[tool.pylint."messages control"]
+# Only show warnings with the listed confidence levels. Leave empty to show all.
+# Valid levels: HIGH, CONTROL_FLOW, INFERENCE, INFERENCE_FAILURE, UNDEFINED.
+confidence = ["HIGH", "CONTROL_FLOW", "INFERENCE", "INFERENCE_FAILURE", "UNDEFINED"]
+
+# Disable the message, report, category or checker with the given id(s). You can
+# either give multiple identifiers separated by comma (,) or put this option
+# multiple times (only on the command line, not in the configuration file where
+# it should appear only once). You can also use "--disable=all" to disable
+# everything first and then re-enable specific checks. For example, if you want
+# to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use "--disable=all --enable=classes
+# --disable=W".
+disable = [
+    # attribute-defined-outside-init,
+    # invalid-name,
+    # missing-docstring,
+    # protected-access,
+    # too-few-public-methods,
+    # handled by ruff formatter
+    "format",
+    # We anticipate #3512 where it will become optional
+    "fixme",
+    # The following checks are covered by ruff. Use helpscripts/ruff_vs_pylint.py for keeping the list updated
+    "invalid-name", # ruff N815
+    "typevar-name-incorrect-variance", # ruff PLC0105
+    "empty-docstring", # ruff D419
+    "unneeded-not", # ruff SIM208
+    "missing-module-docstring", # ruff D100
+    "missing-class-docstring", # ruff D101
+    "missing-function-docstring", # ruff D103
+    "singleton-comparison", # ruff PLC0121
+    "unidiomatic-typecheck", # ruff E721
+    "typevar-double-variance", # ruff PLC0131
+    "typevar-name-mismatch", # ruff PLC0132
+    #"bad-docstring-quotes", # ruff Q002
+    #"docstring-first-line-empty", # ruff D210
+    "consider-iterating-dictionary", # ruff SIM118
+    "bad-classmethod-argument", # ruff PLC0202
+    "single-string-used-for-slots", # ruff PLC0205
+    "use-sequence-for-iteration", # ruff PLC0208
+    "line-too-long", # ruff E501
+    "missing-final-newline", # ruff W292
+    "multiple-statements", # ruff PLC0321
+    "superfluous-parens", # ruff UP034
+    "multiple-imports", # ruff E401
+    "wrong-import-order", # ruff I001
+    "ungrouped-imports", # ruff I001
+    "wrong-import-position", # ruff E402
+    "useless-import-alias", # ruff PLC0414
+    "consider-using-any-or-all", # ruff PLC0501
+    #"compare-to-empty-string", # ruff PLC1901
+    "misplaced-comparison-constant", # ruff SIM300
+    "unnecessary-lambda-assignment", # ruff PLC3001
+    "unnecessary-direct-lambda-call", # ruff PLC3002
+    "syntax-error", # ruff E999
+    "return-in-init", # ruff PLE0101
+    "function-redefined", # ruff F811
+    "not-in-loop", # ruff PLE0103
+    "return-outside-function", # ruff F706
+    "yield-outside-function", # ruff F704
+    "nonexistent-operator", # ruff B002
+    "too-many-star-expressions", # ruff F622
+    "continue-in-finally", # ruff PLE0116
+    "nonlocal-without-binding", # ruff PLE0117
+    "used-prior-global-declaration", # ruff PLE0118
+    "no-method-argument", # ruff N805
+    "no-self-argument", # ruff N805
+    "duplicate-bases", # ruff PLE0241
+    "unexpected-special-method-signature", # ruff PLE0302
+    "undefined-variable", # ruff F821
+    "undefined-all-variable", # ruff F822
+    "invalid-all-object", # ruff PLE0604
+    "invalid-all-format", # ruff PLE0605
+    "notimplemented-raised", # ruff F901
+    "await-outside-async", # ruff PLE1142
+    "logging-too-many-args", # ruff PLE1205
+    "logging-too-few-args", # ruff PLE1206
+    "truncated-format-string", # ruff F501
+    "mixed-format-string", # ruff F506
+    "format-needs-mapping", # ruff F502
+    "missing-format-string-key", # ruff F524
+    "too-many-format-args", # ruff F522
+    "too-few-format-args", # ruff F524
+    "bad-string-format-type", # ruff PLE1307
+    "bad-str-strip-call", # ruff PLE1310
+    "yield-inside-async-function", # ruff PLE1700
+    "bidirectional-unicode", # ruff PLE2502
+    "invalid-character-backspace", # ruff PLE2510
+    "invalid-character-sub", # ruff PLE2512
+    "invalid-character-esc", # ruff PLE2513
+    "invalid-character-nul", # ruff PLE2514
+    "invalid-character-zero-width-space", # ruff PLE2515
+    "literal-comparison", # ruff F632
+    "comparison-with-itself", # ruff PLR0124
+    "comparison-of-constants", # ruff PLR0133
+    "useless-object-inheritance", # ruff UP004
+    "property-with-parameters", # ruff PLR0206
+    "too-many-return-statements", # ruff PLR0911
+    "too-many-branches", # ruff PLR0912
+    "too-many-arguments", # ruff PLR0913
+    "too-many-statements", # ruff PLR0915
+    #"too-complex", # ruff C901
+    "consider-merging-isinstance", # ruff PLR1701
+    "no-else-return", # ruff RET505
+    "consider-using-ternary", # ruff SIM108
+    "trailing-comma-tuple", # ruff COM818
+    "inconsistent-return-statements", # ruff PLR1710
+    "useless-return", # ruff PLR1711
+    "consider-using-in", # ruff PLR1714
+    "consider-using-get", # ruff SIM401
+    "consider-using-dict-comprehension", # ruff C402
+    "consider-using-set-comprehension", # ruff C401
+    "no-else-raise", # ruff RET506
+    "unnecessary-comprehension", # ruff PLR1721
+    "consider-using-sys-exit", # ruff PLR1722
+    "no-else-break", # ruff RET508
+    "no-else-continue", # ruff RET507
+    "super-with-arguments", # ruff UP008
+    "consider-using-generator", # ruff C417
+    "use-a-generator", # ruff C417
+    "use-list-literal", # ruff C405
+    "use-dict-literal", # ruff C406
+    #"magic-value-comparison", # ruff PLR2004
+    "else-if-used", # ruff PLR5501
+    "consider-using-alias", # ruff UP006
+    "consider-alternative-union-syntax", # ruff UP007
+    "dangerous-default-value", # ruff B006
+    "pointless-statement", # ruff B018
+    "expression-not-assigned", # ruff B018
+    "unnecessary-pass", # ruff PLW0107
+    "duplicate-key", # ruff F601
+    "useless-else-on-loop", # ruff PLW0120
+    "exec-used", # ruff S102
+    "eval-used", # ruff PGH001
+    "self-assigning-variable", # ruff PLW0127
+    "assert-on-string-literal", # ruff PLW0129
+    "duplicate-value", # ruff PLW0130
+    "named-expr-without-context", # ruff PLW0131
+    "lost-exception", # ruff B012
+    #"consider-ternary-expression", # ruff SIM108
+    "assert-on-tuple", # ruff F631
+    "unnecessary-semicolon", # ruff E703
+    "wildcard-import", # ruff F403
+    "import-self", # ruff PLW0406
+    "misplaced-future", # ruff F404
+    "fixme", # ruff PLW0511
+    "global-variable-not-assigned", # ruff PLW0602
+    "global-statement", # ruff PLW0603
+    "unused-import", # ruff F401
+    "unused-variable", # ruff F841
+    "unused-argument", # ruff ARG001
+    "redefined-builtin", # ruff A001
+    "cell-var-from-loop", # ruff B023
+    "bare-except", # ruff E722
+    "duplicate-except", # ruff B014
+    "try-except-raise", # ruff TRY302
+    "raise-missing-from", # ruff TRY200
+    "binary-op-exception", # ruff PLW0711
+    "broad-exception-caught", # ruff PLW0718
+    "keyword-arg-before-vararg", # ruff B026
+    "logging-not-lazy", # ruff G
+    "logging-format-interpolation", # ruff G
+    "logging-fstring-interpolation", # ruff G
+    "bad-format-string-key", # ruff PLW1300
+    "unused-format-string-key", # ruff F504
+    "bad-format-string", # ruff PLW1302
+    "missing-format-argument-key", # ruff F524
+    "unused-format-string-argument", # ruff F507
+    "format-combined-specification", # ruff F525
+    "duplicate-string-formatting-argument", # ruff PLW1308
+    "f-string-without-interpolation", # ruff F541
+    "format-string-without-interpolation", # ruff PLW1310
+    "anomalous-backslash-in-string", # ruff W605
+    "implicit-str-concat", # ruff ISC001
+    "inconsistent-quotes", # ruff Q000
+    "invalid-envvar-default", # ruff PLW1508
+    "subprocess-popen-preexec-fn", # ruff PLW1509
+    "subprocess-run-check", # ruff PLW1510
+    "forgotten-debug-statement", # ruff T100
+    #"eq-without-hash", # ruff PLW1641
+    #"redefined-loop-name", # ruff PLW2901
+    #"bad-dunder-name", # ruff PLW3201
+    "nested-min-max", # ruff PLW3301
+    "wrong-spelling-in-comment", # cSpell in IDE
+    "wrong-spelling-in-docstring", # CSpell in IDE
+]
+
+# Enable the message, report, category or checker with the given id(s). You can
+# either give multiple identifier separated by comma (,) or put this option
+# multiple time (only on the command line, not in the configuration file where it
+# should appear only once). See also the "--disable" option for examples.
+enable = ["c-extension-no-member"]
+
+[tool.pylint.method_args]
+# List of qualified names (i.e., library.method) which require a timeout
+# parameter e.g. 'requests.api.get,requests.api.post'
+timeout-methods = ["requests.api.delete", "requests.api.get", "requests.api.head", "requests.api.options", "requests.api.patch", "requests.api.post", "requests.api.put", "requests.api.request"]
+
+[tool.pylint.miscellaneous]
+# List of note tags to take in consideration, separated by a comma.
+notes = ["FIXME", "XXX", "TODO"]
+
+# Regular expression of note tags to take in consideration.
+# notes-rgx =
+
+[tool.pylint.refactoring]
+# Maximum number of nested blocks for function / method body
+max-nested-blocks = 5
+
+# Complete name of functions that never returns. When checking for inconsistent-
+# return-statements if a never returning function is called then it will be
+# considered as an explicit return statement and no message will be printed.
+never-returning-functions = ["sys.exit", "argparse.parse_error"]
+
+[tool.pylint.reports]
+# Python expression which should return a score less than or equal to 10. You
+# have access to the variables 'fatal', 'error', 'warning', 'refactor',
+# 'convention', and 'info' which contain the number of messages in each category,
+# as well as 'statement' which is the total number of statements analyzed. This
+# score is used by the global evaluation report (RP0004).
+evaluation = "max(0, 0 if fatal else 10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10))"
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details.
+# msg-template =
+
+# Set the output format. Available formats are text, parseable, colorized, json
+# and msvs (visual studio). You can also give a reporter class, e.g.
+# mypackage.mymodule.MyReporterClass.
+output-format = "parseable"
+
+# Tells whether to display a full report or only the messages.
+# reports =
+
+# Activate the evaluation score.
+score = true
+
+[tool.pylint.similarities]
+# Comments are removed from the similarity computation
+ignore-comments = true
+
+# Docstrings are removed from the similarity computation
+ignore-docstrings = true
+
+# Imports are removed from the similarity computation
+ignore-imports = true
+
+# Signatures are removed from the similarity computation
+ignore-signatures = true
+
+# Minimum lines number of a similarity.
+min-similarity-lines = 4
+
+[tool.pylint.spelling]
+# Limits count of emitted suggestions for spelling mistakes.
+max-spelling-suggestions = 4
+
+# Spelling dictionary name. No available dictionaries : You need to install both
+# the python package and the system dependency for enchant to work..
+spelling-dict = "en_US"
+
+# List of comma separated words that should be considered directives if they
+# appear at the beginning of a comment and should not be checked.
+spelling-ignore-comment-directives = "fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,mypy:"
+
+# List of comma separated words that should not be checked.
+# spelling-ignore-words =
+
+# A path to a file that contains the private dictionary; one word per line.
+# spelling-private-dict-file =
+
+# Tells whether to store unknown words to the private dictionary (see the
+# --spelling-private-dict-file option) instead of raising a message.
+# spelling-store-unknown-words =
+
+[tool.pylint.typecheck]
+# List of decorators that produce context managers, such as
+# contextlib.contextmanager. Add to this list to register other decorators that
+# produce valid context managers.
+contextmanager-decorators = ["contextlib.contextmanager"]
+
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed. Python regular
+# expressions are accepted.
+# generated-members =
+
+# Tells whether missing members accessed in mixin class should be ignored. A
+# class is considered mixin if its name matches the mixin-class-rgx option.
+# Tells whether to warn about missing members when the owner of the attribute is
+# inferred to be None.
+ignore-none = true
+
+# This flag controls whether pylint should warn about no-member and similar
+# checks whenever an opaque object is returned when inferring. The inference can
+# return multiple potential results while evaluating a Python object, but some
+# branches might not be evaluated, which results in partial inference. In that
+# case, it might be useful to still emit no-member and other checks for the rest
+# of the inferred objects.
+ignore-on-opaque-inference = true
+
+# List of symbolic message names to ignore for Mixin members.
+ignored-checks-for-mixins = ["no-member", "not-async-context-manager", "not-context-manager", "attribute-defined-outside-init"]
+
+# List of class names for which member attributes should not be checked (useful
+# for classes with dynamically set attributes). This supports the use of
+# qualified names.
+ignored-classes = ["optparse.Values", "thread._local", "_thread._local", "argparse.Namespace"]
+
+# Show a hint with possible names when a member name was not found. The aspect of
+# finding the hint is based on edit distance.
+missing-member-hint = true
+
+# The minimum edit distance a name should have in order to be considered a
+# similar match for a missing member name.
+missing-member-hint-distance = 1
+
+# The total number of similar names that should be taken in consideration when
+# showing a hint for a missing member.
+missing-member-max-choices = 1
+
+# Regex pattern to define which classes are considered mixins.
+mixin-class-rgx = ".*[Mm]ixin"
+
+# List of decorators that change the signature of a decorated function.
+# signature-mutators =
+
+[tool.pylint.variables]
+# List of additional names supposed to be defined in builtins. Remember that you
+# should avoid defining new builtins when possible.
+# additional-builtins =
+
+# Tells whether unused global variables should be treated as a violation.
+allow-global-unused-variables = true
+
+# List of names allowed to shadow builtins
+# allowed-redefined-builtins =
+
+# List of strings which can identify a callback function by name. A callback name
+# must start or end with one of those strings.
+callbacks = ["cb_", "_cb"]
+
+# A regular expression matching the name of dummy variables (i.e. expected to not
+# be used).
+dummy-variables-rgx = "_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_"
+
+# Argument names that match this expression will be ignored.
+ignored-argument-names = "_.*|^ignored_|^unused_"
+
+# Tells whether we should check for unused import in __init__ files.
+init-import = false
+
+# List of qualified module names which can have objects that can redefine
+# builtins.
+redefining-builtins-modules = ["six.moves", "past.builtins", "future.builtins", "builtins", "io"]

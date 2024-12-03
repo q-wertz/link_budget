@@ -1,0 +1,25 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__
+    
+# Ignore some errors/warnings as they are covered by pylint
+ignore =
+    # E126 continuation line over-indented for hanging indent
+    E126,
+    # E226 missing whitespace around arithmetic operator
+    E226,
+    # E241 multiple spaces after ','
+    E241,
+    # E501 line too long (is done in pylint)
+    E501,
+    # E241 multiple spaces after ','
+    E241,
+    # F401 imported but unused (is done in pylint)
+    F401,
+    # Line break occurred before a binary operator
+    W503,
+    # whitespace before ':' (see https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#slices)
+    E203,
+# max-line-length = 100
+# statistics = True

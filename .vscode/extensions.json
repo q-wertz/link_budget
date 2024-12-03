@@ -1,0 +1,22 @@
+{
+    // See http://go.microsoft.com/fwlink/?LinkId=827846
+    // for the documentation about the extensions.json format
+    "recommendations": [
+        "ms-python.python",
+        // Don't use pylance (e.g. https://aur.archlinux.org/packages/code-features#comment-929057)!
+        // Instead basedpyright:
+        "detachhead.basedpyright",
+        "streetsidesoftware.code-spell-checker",
+        "gruntfuggly.todo-tree",
+        "njpwerner.autodocstring",
+        "charliermarsh.ruff",
+        "vscode-icons-team.vscode-icons",
+        "ms-python.pylint",
+        "ms-python.mypy-type-checker",
+        "ms-python.debugpy",
+        "Remisa.mathover",
+        "markis.code-coverage",
+        "rodolphebarbanneau.python-docstring-highlighter",
+        "marimo-team.vscode-marimo"
+    ]
+}
