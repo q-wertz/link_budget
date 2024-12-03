@@ -176,6 +176,7 @@ def __(
     ui_refractive_index,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
+    ui_signal_tx_power,
     ui_tx_antenna_type,
 ):
     # UI
@@ -183,7 +184,8 @@ def __(
         [
             mo.hstack([ui_signal_freq_mhz, ui_refractive_index]),
             mo.hstack([mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")]),
-            mo.hstack([ui_tx_antenna_type, ui_rx_antenna_type, ui_distance_km]),
+            mo.hstack([ui_signal_tx_power, ui_tx_antenna_type, ui_rx_antenna_type]),
+            ui_distance_km,
         ]
     )
     return
