@@ -250,7 +250,7 @@ def __(
 @app.cell
 def __(alt, data_pd, mo):
     rx_power_chart = mo.ui.altair_chart(
-        alt.Chart(data_pd)
+        alt.Chart(data_pd, title="The signal power at a receiver")
         .mark_line()
         .encode(
             x=alt.X("distance_km").title("Distance [km]"),
@@ -276,9 +276,9 @@ def __(rx_power_chart):
 def __(mo):
     mo.md(
         r"""
-        # Sensing
+        # Sensing/Visualization
 
-        ## Configuration
+        ## ADC
         """
     )
     return
@@ -408,6 +408,98 @@ def __(
             callout,
         ]
     )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        r"""
+        ## Time domain
+
+        Calculate the number of points a signal has by a set SDR sample rate $f_s$:
+
+        $$
+        N = T \cdot f_s
+        $$
+
+        where $T$ is the duration of the signal (in s).
+        """
+    )
+    return
+
+
+@app.cell
+def __(mo):
+    # Configuration
+    ui_sdr_sample_rate = mo.ui.range_slider(
+        start=1,
+        stop=200,
+        step=10,
+        value=(10, 120),
+        show_value=True,
+        label="Sample rate range [MSps]",
+    )
+    ui_signal_bit_width = mo.ui.slider(
+        start=0.1,
+        stop=100.0,
+        step=0.1,
+        value=1.0,
+        show_value=True,
+        label="Signal length [µs]",
+    )
+    return ui_sdr_sample_rate, ui_signal_bit_width
+
+
+@app.cell
+def __(mo, ui_sdr_sample_rate, ui_signal_bit_width):
+    # UI
+    mo.vstack(
+        [
+            mo.hstack([ui_sdr_sample_rate, ui_signal_bit_width]),
+        ]
+    )
+    return
+
+
+@app.cell
+def __(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
+    # Data generation
+    sample_rate_data = pd.DataFrame(
+        np.arange(
+            start=ui_sdr_sample_rate.value[0],
+            stop=ui_sdr_sample_rate.value[1],
+            step=1,
+        ),
+        columns=["sample_rate"],
+    )
+
+    sample_rate_data["datapoints"] = (sample_rate_data.loc[:, "sample_rate"] * 1e6) * (
+        ui_signal_bit_width.value * 1e-6
+    )
+    return (sample_rate_data,)
+
+
+@app.cell
+def __(alt, mo, sample_rate_data, ui_signal_bit_width):
+    sample_rate_chart = mo.ui.altair_chart(
+        alt.Chart(
+            sample_rate_data,
+            title=f"The number of datapoints a SDR has for a signal with a duration of {ui_signal_bit_width.value:.1f} µs",
+        )
+        .mark_line()
+        .encode(
+            x=alt.X("sample_rate").title("Sample rate [MSps]"),
+            y=alt.Y("datapoints").title("N datapoints"),
+            # color=alt.Color("tx_power_W:N").title("TX Power [W]"),
+        )
+    )
+    return (sample_rate_chart,)
+
+
+@app.cell
+def __(sample_rate_chart):
+    sample_rate_chart
     return
 
 
