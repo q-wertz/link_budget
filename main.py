@@ -146,6 +146,8 @@ def __(
         (4.0 * np.pi * ui_distance_km.value * 1000.0) / (signal_speed_in_medium)
     ) ** 2
 
+    signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power.value)
+
     received_power = helpfunctions.received_power(
         p_s=ui_signal_tx_power.value,
         g_s_db=ui_tx_antenna_type.value,
@@ -164,6 +166,7 @@ def __(
         received_power_dbm,
         received_power_dbw,
         signal_speed_in_medium,
+        signal_tx_power_dbw,
         signal_wavelength,
     )
 
@@ -171,6 +174,7 @@ def __(
 @app.cell
 def __(
     mo,
+    signal_tx_power_dbw,
     signal_wavelength,
     ui_distance_km,
     ui_refractive_index,
@@ -182,9 +186,31 @@ def __(
     # UI
     mo.vstack(
         [
-            mo.hstack([ui_signal_freq_mhz, ui_refractive_index]),
-            mo.hstack([mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")]),
-            mo.hstack([ui_signal_tx_power, ui_tx_antenna_type, ui_rx_antenna_type]),
+            ui_refractive_index,
+            mo.hstack(
+                [
+                    mo.hstack(
+                        [
+                            ui_signal_freq_mhz,
+                            mo.left(
+                                mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")
+                            ),
+                        ],
+                        justify="start",
+                    ),
+                    mo.hstack(
+                        [
+                            ui_signal_tx_power,
+                            mo.md(
+                                r"$\Rightarrow$ Signal power [dBW]: "
+                                + f"{signal_tx_power_dbw:.1f}dBW"
+                            ),
+                        ],
+                        justify="start",
+                    ),
+                ]
+            ),
+            mo.hstack([ui_tx_antenna_type, ui_rx_antenna_type]),
             ui_distance_km,
         ]
     )
@@ -201,7 +227,6 @@ def __(mo):
 def __(
     helpfunctions,
     itertools,
-    mo,
     np,
     pd,
     signal_speed_in_medium,
@@ -243,14 +268,24 @@ def __(
     )
 
     # TODO: Fix. Calculation is wrong
-    mo.ui.table(data_pd)
+    # mo.ui.table(data_pd)
     return data_np, data_pd, distances, transmission_powers
 
 
 @app.cell
-def __(alt, data_pd, mo):
-    rx_power_chart = mo.ui.altair_chart(
-        alt.Chart(data_pd, title="The signal power at a receiver")
+def __(
+    alt,
+    data_pd,
+    mo,
+    ui_rx_antenna_type,
+    ui_signal_tx_power,
+    ui_tx_antenna_type,
+):
+    _rx_power_chart = (
+        alt.Chart(
+            data_pd,
+            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power.value}W and total antenna gains of {ui_tx_antenna_type.value + ui_rx_antenna_type.value}dBi",
+        )
         .mark_line()
         .encode(
             x=alt.X("distance_km").title("Distance [km]"),
@@ -263,6 +298,8 @@ def __(alt, data_pd, mo):
             color=alt.Color("tx_power_W:N").title("TX Power [W]"),
         )
     )
+
+    rx_power_chart = mo.ui.altair_chart(_rx_power_chart)
     return (rx_power_chart,)
 
 
