@@ -22,7 +22,15 @@ def __():
 def __():
     # Constants
     speed_of_light = 2.99792458e8
-    return (speed_of_light,)
+
+    antenna_type_gain: dict[str, float] = {
+        # Type:  Gain [dBi]
+        "Omnidirectional": 0.0,
+        "Hertsche dipole antenna": 1.76,
+        "λ/2 dipole (ideal)": 2.15,
+        "λ/4 monopole (ideal)": 5.15,
+    }
+    return antenna_type_gain, speed_of_light
 
 
 @app.cell
@@ -44,7 +52,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def __(antenna_type_gain, mo):
     # Configuration
     ui_signal_freq_mhz = mo.ui.slider(
         start=800.0,
@@ -71,20 +79,12 @@ def __(mo):
         label="Signal power [W]",
     )
     ui_tx_antenna_type = mo.ui.dropdown(
-        options={
-            # Type: Gain [dBi]
-            "Omnidirectional": 0.0,
-            "Dipole antenna": 2.15,
-        },
+        options=antenna_type_gain,
         value="Omnidirectional",
         label="The transmitting antenna type",
     )
     ui_rx_antenna_type = mo.ui.dropdown(
-        options={
-            # Type: Gain [dBi]
-            "Omnidirectional": 0.0,
-            "Dipole antenna": 2.15,
-        },
+        options=antenna_type_gain,
         value="Omnidirectional",
         label="The receiving antenna type",
     )
