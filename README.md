@@ -8,12 +8,12 @@ This is a link budget calculator for EM waves. Additionally the DAC conversion c
 
 For packaging and dependency management [Poetry](https://python-poetry.org/) is used. Refer to the [documentation](https://python-poetry.org/docs) for in-depth information.
 
-You can simply set up a new virtual environment (in the project subfolder `.venv`) with the required packages by running:
+You can simply set up a new virtual environment with the required packages (which is placed in the project subfolder `.venv`) by running:
 
 ```bash
 poetry install
 
-# Without the development dependencies
+# If you want to install without the development dependencies use
 poetry install --no-dev
 ```
 
@@ -21,12 +21,6 @@ If you want to open a shell in the virtual environment, simply run
 
 ```bash
 poetry shell
-```
-
-You can list all poetry virtual environments using
-
-```bash
-poetry env list
 ```
 
 You can run the marimo notebook using
