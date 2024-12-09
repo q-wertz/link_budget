@@ -72,14 +72,6 @@ def __(antenna_type_gain, mo):
         show_value=True,
         label="Signal frequency [MHz]",
     )
-    ui_refractive_index = mo.ui.slider(
-        start=1.0,
-        stop=3.0,
-        step=0.01,
-        value=1.0,
-        show_value=True,
-        label="Refractive index",
-    )
     ui_signal_tx_power = mo.ui.slider(
         start=100.0,
         stop=300.0,
@@ -108,7 +100,6 @@ def __(antenna_type_gain, mo):
     )
     return (
         ui_distance_km,
-        ui_refractive_index,
         ui_rx_antenna_type,
         ui_signal_freq_mhz,
         ui_signal_tx_power,
@@ -137,23 +128,21 @@ def __(
     np,
     speed_of_light,
     ui_distance_km,
-    ui_refractive_index,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
     ui_signal_tx_power,
     ui_tx_antenna_type,
 ):
     # Calculations
-    signal_speed_in_medium = speed_of_light / ui_refractive_index.value
-    signal_wavelength = signal_speed_in_medium / (ui_signal_freq_mhz.value * 10**6)
+    signal_wavelength = speed_of_light / (ui_signal_freq_mhz.value * 10**6)
 
     free_space_path_loss_dB = helpfunctions.free_space_path_loss(
         freq=ui_signal_freq_mhz.value * 10**6,
-        s_vel=signal_speed_in_medium,
+        s_vel=speed_of_light,
         dist=ui_distance_km.value * 1000.0,
     )
     free_space_path_loss = (
-        (4.0 * np.pi * ui_distance_km.value * 1000.0) / (signal_speed_in_medium)
+        (4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)
     ) ** 2
 
     signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power.value)
@@ -164,7 +153,7 @@ def __(
         g_r_db=ui_rx_antenna_type.value,
         dist=ui_distance_km.value * 1000.0,
         freq=ui_signal_freq_mhz.value * 10**6,
-        s_vel=signal_speed_in_medium,
+        s_vel=speed_of_light,
         p_unit=helpfunctions.PowerUnit.W,
     )
     received_power_dbw: float = 10 * np.log10(received_power)
@@ -175,7 +164,6 @@ def __(
         received_power,
         received_power_dbm,
         received_power_dbw,
-        signal_speed_in_medium,
         signal_tx_power_dbw,
         signal_wavelength,
     )
@@ -187,7 +175,6 @@ def __(
     signal_tx_power_dbw,
     signal_wavelength,
     ui_distance_km,
-    ui_refractive_index,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
     ui_signal_tx_power,
@@ -196,7 +183,6 @@ def __(
     # UI
     mo.vstack(
         [
-            ui_refractive_index,
             mo.hstack(
                 [
                     mo.hstack(
@@ -238,7 +224,7 @@ def __(
     itertools,
     np,
     pd,
-    signal_speed_in_medium,
+    speed_of_light,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
     ui_signal_tx_power,
@@ -258,7 +244,7 @@ def __(
 
     data_np[:, 3] = helpfunctions.free_space_path_loss_vec(
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
-        s_vel=np.full(shape=(len(data_np),), fill_value=signal_speed_in_medium),
+        s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
         dist=data_np[:, 0] * 1000.0,
     )
 
@@ -268,7 +254,7 @@ def __(
         g_r_db=np.full(shape=(len(data_np),), fill_value=ui_rx_antenna_type.value),
         dist=data_np[:, 0] * 1000.0,
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
-        s_vel=np.full(shape=(len(data_np),), fill_value=signal_speed_in_medium),
+        s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
         p_unit=helpfunctions.PowerUnit.dBm,
     )
 
