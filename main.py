@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.9.28"
+__generated_with = "0.9.30"
 app = marimo.App(width="full", app_title="Link budget calculator")
 
 
@@ -14,7 +14,6 @@ def __():
     import pandas as pd
 
     from helpfunctions import helpfunctions
-
     return alt, helpfunctions, itertools, mo, np, pd
 
 
@@ -39,11 +38,22 @@ def __(mo):
         r"""
         # Link budget calculation
 
-        Calculate the link budget based on free-space path loss:
+        Calculation of the link budget based on free-space path loss:
 
         $$
-        \text{FSPL}(\text{dB}) = 20 \log_{10}(d) + 20 \log_{10}(f) + 20 \log_{10} \left( \frac{4 \pi}{c} \right)
+        \text{FSPL}[\text{dB}] = 20 \log_{10}(d) + 20 \log_{10}(f) + 20 \log_{10} \left( \frac{4 \pi}{c} \right)
         $$
+
+        The power at the receiver $P_r$ can be estimated by
+
+        $$
+        \begin{align*}
+        P_r[\text{dB}] &= P_s[\text{dB}] + G_s - \text{FSPL}[\text{dB}] + G_r \\
+        &= P_s[\text{dB}] + G_s - 20 \log_{10}(d) - 20 \log_{10}(f) - 20 \log_{10} \left( \frac{4 \pi}{c} \right) + G_r 
+        \end{align*}
+        $$
+
+        where $G_s$ and $G_r$ are the sender and receiver antenna Gains (in dBi).
 
         ## Configuration
         """
@@ -202,8 +212,7 @@ def __(
                         [
                             ui_signal_tx_power,
                             mo.md(
-                                r"$\Rightarrow$ Signal power [dBW]: "
-                                + f"{signal_tx_power_dbw:.1f}dBW"
+                                r"$\Rightarrow$ Signal power [dBW]: " + f"{signal_tx_power_dbw:.1f}dBW"
                             ),
                         ],
                         justify="start",
@@ -316,6 +325,23 @@ def __(mo):
         # Sensing/Visualization
 
         ## ADC
+
+        The received power at a 50 $\Omega$ system corresponds to a voltage of 
+
+        $$
+        U_r = 10^{\frac{P[\text{dBm}] - 10}{20}} \text{V}
+        $$
+
+        Depending on the voltage range and resolution of the analog to digital converter (ADC) small voltages might not be "sensed" by the DAC. The the minimum voltage a signal has to trigger at the DAC has to be:
+
+        $$
+        \begin{align*}
+            U_\text{min} &\geq \frac{U_\text{max}}{2^{N_\text{bit}}} \\
+            \Rightarrow{}\quad P_{r,\text{min}} &= 
+        \end{align*}
+        $$
+
+        where $N_\text{bit}$ is the number of bits of the DAC and $U_\text{max}$ is the maximum allowed voltage of the DAC input.
         """
     )
     return
@@ -387,6 +413,7 @@ def __(mo, tx_voltage_bit_value, ui_adc_n_bits):
             return "⚠️"
         else:
             return "❌"
+
 
     voltage_warn_symb = calc_symbol(bit_value=tx_voltage_bit_value, n_bits=ui_adc_n_bits.value)
 
