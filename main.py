@@ -55,9 +55,39 @@ def __(mo):
 
         where $G_s$ and $G_r$ are the sender and receiver antenna Gains (in dBi).
 
-        ## Configuration
+        ## Usual setup
+
+        A naive approach leads to a schema similar to the following:
         """
     )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.mermaid(
+        r"""
+        flowchart LR
+          subgraph Transmitter
+            Tr(Transmitter) --> Tr_Am("Amplifier<br>(optional)")
+            Tr_Am --> Tr_An("Transmitter antenna 📡")
+          end
+          Tr_An -.->|Transmission channel| Re_An("📡 Receiver antenna")
+          subgraph Receiver
+            Re_An --> Re_Am("Amplifier<br>(optional)")
+            Re_Am --> Re_ADC("Analog-to-digital converter (ADCn)")
+          end;
+
+          classDef optionalNode fill:#858585;
+          class Re_Am,Tr_Am optionalNode;
+        """
+    )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md("""## Configuration""")
     return
 
 
@@ -141,9 +171,7 @@ def __(
         s_vel=speed_of_light,
         dist=ui_distance_km.value * 1000.0,
     )
-    free_space_path_loss = (
-        (4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)
-    ) ** 2
+    free_space_path_loss = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)) ** 2
 
     signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power.value)
 
