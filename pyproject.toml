@@ -23,7 +23,7 @@ issues = "https://github.com/q-wertz/link_budget/issues"
 [tool.poetry.dependencies]
 python = ">=3.11, <3.13"
 numpy = ">=2.0.0"
-marimo = "^0.9.27"
+marimo = "^0.9.33"
 altair = "^5.5.0"
 pandas = "^2.2.3"
 
@@ -57,6 +57,20 @@ setuptools = ">=69.5.1"
 tuna = "^0.5.11"
 pytest-check = "^2.3.1"
 basedpyright = "^1.13.3"
+
+
+[tool.marimo]
+# Config for 'marimo'
+# See `marimo config describe` for more details
+[tool.marimo.completion]
+activate_on_typing = true
+copilot = false
+
+[tool.marimo.formatting]
+line_length = 100
+
+[tool.marimo.package_manager]
+manager = "poetry"
 
 
 [tool.mypy]
