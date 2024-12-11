@@ -1,7 +1,7 @@
 import marimo
 
-__generated_with = "0.9.30"
-app = marimo.App(width="full", app_title="Link budget calculator")
+__generated_with = "0.9.34"
+app = marimo.App(width="medium", app_title="Link budget calculator")
 
 
 @app.cell
@@ -14,6 +14,7 @@ def __():
     import pandas as pd
 
     from helpfunctions import helpfunctions
+
     return alt, helpfunctions, itertools, mo, np, pd
 
 
@@ -75,7 +76,7 @@ def __(mo):
           Tr_An -.->|Transmission channel| Re_An("📡 Receiver antenna")
           subgraph Receiver
             Re_An --> Re_Am("Amplifier<br>(optional)")
-            Re_Am --> Re_ADC("Analog-to-digital converter (ADCn)")
+            Re_Am --> Re_ADC("Analog-to-digital converter (ADC)")
           end;
 
           classDef optionalNode fill:#858585;
@@ -226,7 +227,8 @@ def __(
                         [
                             ui_signal_tx_power,
                             mo.md(
-                                r"$\Rightarrow$ Signal power [dBW]: " + f"{signal_tx_power_dbw:.1f}dBW"
+                                r"$\Rightarrow$ Signal power [dBW]: "
+                                + f"{signal_tx_power_dbw:.1f}dBW"
                             ),
                         ],
                         justify="start",
@@ -351,7 +353,7 @@ def __(mo):
         $$
         \begin{align*}
             U_\text{min} &\geq \frac{U_\text{max}}{2^{N_\text{bit}}} \\
-            \Rightarrow{}\quad P_{r,\text{min}} &= 
+            \Rightarrow{}\quad P_{r,\,\text{min}} &= \left( 20 \cdot \log \left(\frac{U_\text{max}}{2^{N_\text{bit}}} \right) + 10 \right) \text{dBm}
         \end{align*}
         $$
 
@@ -405,17 +407,22 @@ def __(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
 @app.cell
 def __(
     helpfunctions,
+    np,
     received_power_dbm,
     ui_adc_n_bits,
     ui_adc_v_max,
     ui_rx_amplifier_dB,
 ):
     # Calculations
+    tx_min_power_1bit_dbm = (
+        20 * np.log10(ui_adc_v_max.value / (2**ui_adc_n_bits.value)) + 10 - ui_rx_amplifier_dB.value
+    )
+
     tx_voltage = helpfunctions.power_50_ohm_to_vpk(received_power_dbm + ui_rx_amplifier_dB.value)
     tx_voltage_bit_value = tx_voltage * (2**ui_adc_n_bits.value / ui_adc_v_max.value)
 
     # TODO: Conversion of Receiption power and bits
-    return tx_voltage, tx_voltage_bit_value
+    return tx_min_power_1bit_dbm, tx_voltage, tx_voltage_bit_value
 
 
 @app.cell
@@ -427,7 +434,6 @@ def __(mo, tx_voltage_bit_value, ui_adc_n_bits):
             return "⚠️"
         else:
             return "❌"
-
 
     voltage_warn_symb = calc_symbol(bit_value=tx_voltage_bit_value, n_bits=ui_adc_n_bits.value)
 
@@ -463,6 +469,7 @@ def __(
     received_power,
     received_power_dbm,
     received_power_dbw,
+    tx_min_power_1bit_dbm,
     tx_voltage,
     tx_voltage_bit_value,
     ui_rx_amplifier_dB,
@@ -474,11 +481,12 @@ def __(
             mo.md(
                 f"""
 
-        |     |       |     |
+        |     | Unit  |     |
         | --- | :---: | --- |
         | Free-space path loss      | dB<br>frac         | {free_space_path_loss_dB:.2f} dB<br>{free_space_path_loss:.3} |
         | Received power            | dBW<br>dBm<br>Watt | {received_power_dbw:.2f} dBW<br>{received_power_dbm:.2f} dBm<br>{received_power:.3} W |
         | Amplification in receiver | dB                 | {ui_rx_amplifier_dB.value:.1f} dB |
+        | Minimum required power<br>(to get first bit flipped) | dBm                | {tx_min_power_1bit_dbm:.1f} dBm |
         | Voltage                   | V                  | {tx_voltage:.2} V |
         | Voltage in bit number     |                    | {tx_voltage_bit_value:.0f} {voltage_warn_symb} |
         """
