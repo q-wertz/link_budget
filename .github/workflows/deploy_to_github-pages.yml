@@ -1,0 +1,99 @@
+name: Deploy marimo notebook to Pages
+
+on:
+  push:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----
+      #----------------------------------------------    
+      # install dependencies using Gr1N/setup-poetry
+      # - uses: actions/checkout@v3
+      # - uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.11"
+      # - uses: Gr1N/setup-poetry@v8
+      # - run: poetry --version
+      
+      # install dependencies using pronovic/setup-poetry (based on snok/install-poetry)
+      # - name: Setup Poetry
+      #   uses: pronovic/setup-poetry@v2
+      #   with:
+      #     version: "1.8.0"
+      #     plugins: "poetry-dynamic-versioning==1.2.0"
+      #     cache-venv: "true"
+      #     cache-poetry: "true"
+      
+      # install dependencies using snok/install-poetry
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          virtualenvs-path: .venv
+          installer-parallel: true
+
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      #----------------------------------------------
+      # Export notebook & Upload pages artifact
+      #----------------------------------------------      
+      - name: 📄 Export notebook
+        run: |
+          poetry run marimo export html-wasm main.py -o build_marimo --mode run
+
+      - name: 📦 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build_marimo
+          
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: 🌐 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages
