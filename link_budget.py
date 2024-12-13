@@ -269,7 +269,7 @@ def _(antenna_type_gain, mo):
     )
 
 
-@app.cell
+@app.cell(disabled=True)
 def _(mo):
     # TODO: Some "famous" settings that should quickly overwrite the custom chosen values
     ui_presets = mo.ui.dropdown(
@@ -424,7 +424,7 @@ def _(
         data_np, columns=["distance_km", "tx_power_W", "tx_power_dBm", "fspl_dB", "rx_power_dBm"]
     )
 
-    # TODO: Fix. Calculation is wrong
+    # TODO: Fix. Calculation is wrong (update to transmission power ui doesn't update the graph)
     # mo.ui.table(data_pd)
     return data_np, data_pd, distances, transmission_powers
 
