@@ -53,7 +53,7 @@ jobs:
           installer-parallel: true
 
       #----------------------------------------------
-      #       load cached venv if cache exists
+      # load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -78,11 +78,12 @@ jobs:
       - name: 📦 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build_marimo
-          
+          path: build_marimo/
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
