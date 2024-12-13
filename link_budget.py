@@ -6,15 +6,14 @@ app = marimo.App(width="medium", app_title="Link budget calculator")
 
 @app.cell
 def _():
+    import enum
     import itertools
 
     import altair as alt
     import marimo as mo
     import numpy as np
     import pandas as pd
-
-    from helpfunctions import helpfunctions
-    return alt, helpfunctions, itertools, mo, np, pd
+    return alt, enum, itertools, mo, np, pd
 
 
 @app.cell
@@ -30,6 +29,139 @@ def _():
         "λ/4 monopole (ideal)": 5.15,
     }
     return antenna_type_gain, speed_of_light
+
+
+@app.cell
+def _(enum, np):
+    # Helpfunctions
+    class PowerUnit(enum.Enum):
+        """Enumeration for the different units a power can be given."""
+
+        W = enum.auto()
+        dBW = enum.auto()
+        dBm = enum.auto()
+
+
+    # --------------------------------------------------------------------------------------------------
+    # Signal power calculations
+    # --------------------------------------------------------------------------------------------------
+    def free_space_path_loss(freq: float, s_vel: float, dist: float) -> float:
+        """Calculate the free space path loss in decibel.
+
+        See wiki Simulation/Signal-Propagation.
+
+        Parameters
+        ----------
+        freq
+            Signal frequency (in Hz).
+        s_vel
+            Signal velocity (in m/s).
+        dist
+            Distance (in meter).
+
+        Returns
+        -------
+        float
+            The free space path loss in decibel.
+        """
+        if dist == 0.0:
+            return 0.0
+
+        l_db: float = (
+            20.0 * np.log10(4.0 * np.pi / s_vel) + 20.0 * np.log10(freq) + 20.0 * np.log10(dist)
+        )
+
+        return l_db
+
+
+    free_space_path_loss_vec = np.vectorize(free_space_path_loss)
+
+
+    def received_power(
+        p_s: float,
+        g_s_db: float,
+        g_r_db: float,
+        dist: float,
+        freq: float,
+        s_vel: float,
+        p_unit: PowerUnit,
+    ) -> float:
+        """Calculate the received power.
+
+        See wiki Simulation/Signal-Propagation.
+
+        Parameters
+        ----------
+        p_s
+            Power of the sent signal.
+        g_s_db
+            Sender antenna gain in decibel.
+        g_r_db
+            Receiver antenna gain in decibel.
+        dist
+            Distance (in meter).
+        freq
+            Signal frequency (in Hz).
+        s_vel
+            Signal velocity (in m/s).
+        p_unit
+            The power unit of `p_s` and the return value.
+
+        Returns
+        -------
+        float
+            The power at the receiver in the unit specified in `p_unit`.
+
+        Raises
+        ------
+        ValueError
+            If `p_unit` value is invalid.
+        """
+        l_db = free_space_path_loss(freq=freq, s_vel=s_vel, dist=dist)
+
+        match p_unit:
+            case PowerUnit.dBm | PowerUnit.dBW:
+                return p_s + g_s_db + g_r_db - l_db
+            case PowerUnit.W:
+                p_r_dbw: float = 10.0 * np.log10(p_s) + g_s_db + g_r_db - l_db
+                p_r_w: float = np.power(10.0, p_r_dbw / 10.0)
+                return p_r_w
+            case _:
+                raise ValueError(f"'p_unit' value {p_unit} is invalid.")
+
+
+    received_power_vec = np.vectorize(received_power, excluded=("p_unit",))
+
+
+    # --------------------------------------------------------------------------------------------------
+    # Other
+    # --------------------------------------------------------------------------------------------------
+    def power_50_ohm_to_vpk(p_dbm: float) -> float:
+        """Convert a power in a 50Ω system to a voltage.
+
+        Parameters
+        ----------
+        p_dbm
+            Power in dBm.
+
+        Returns
+        -------
+        float
+            The peak voltage in volt.
+        """
+        return 10 ** ((p_dbm - 10.0) / 20.0)
+
+
+    power_50_ohm_to_vpk_vec = np.vectorize(power_50_ohm_to_vpk)
+    return (
+        PowerUnit,
+        free_space_path_loss,
+        free_space_path_loss_vec,
+        power_50_ohm_to_vpk,
+        power_50_ohm_to_vpk_vec,
+        received_power,
+        received_power_vec,
+    )
 
 
 @app.cell
@@ -154,8 +286,10 @@ def _(mo):
 
 @app.cell
 def _(
-    helpfunctions,
+    PowerUnit,
+    free_space_path_loss,
     np,
+    received_power,
     speed_of_light,
     ui_distance_km,
     ui_rx_antenna_type,
@@ -166,32 +300,32 @@ def _(
     # Calculations
     signal_wavelength = speed_of_light / (ui_signal_freq_mhz.value * 10**6)
 
-    free_space_path_loss_dB = helpfunctions.free_space_path_loss(
+    fspl_dB = free_space_path_loss(
         freq=ui_signal_freq_mhz.value * 10**6,
         s_vel=speed_of_light,
         dist=ui_distance_km.value * 1000.0,
     )
-    free_space_path_loss = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)) ** 2
+    fspl = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)) ** 2
 
     signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power.value)
 
-    received_power = helpfunctions.received_power(
+    received_pwr = received_power(
         p_s=ui_signal_tx_power.value,
         g_s_db=ui_tx_antenna_type.value,
         g_r_db=ui_rx_antenna_type.value,
         dist=ui_distance_km.value * 1000.0,
         freq=ui_signal_freq_mhz.value * 10**6,
         s_vel=speed_of_light,
-        p_unit=helpfunctions.PowerUnit.W,
+        p_unit=PowerUnit.W,
     )
-    received_power_dbw: float = 10 * np.log10(received_power)
-    received_power_dbm: float = 10 * np.log10(received_power * 1000)
+    received_pwr_dbw: float = 10 * np.log10(received_pwr)
+    received_pwr_dbm: float = 10 * np.log10(received_pwr * 1000)
     return (
-        free_space_path_loss,
-        free_space_path_loss_dB,
-        received_power,
-        received_power_dbm,
-        received_power_dbw,
+        fspl,
+        fspl_dB,
+        received_pwr,
+        received_pwr_dbm,
+        received_pwr_dbw,
         signal_tx_power_dbw,
         signal_wavelength,
     )
@@ -246,10 +380,12 @@ def _(mo):
 
 @app.cell
 def _(
-    helpfunctions,
+    PowerUnit,
+    free_space_path_loss_vec,
     itertools,
     np,
     pd,
+    received_power_vec,
     speed_of_light,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
@@ -268,20 +404,20 @@ def _(
     data_np[:, :2] = np.array([dp for dp in itertools.product(distances, transmission_powers)])
     data_np[:, 2] = 10 * np.log10(data_np[:, 1] * 1000.0)
 
-    data_np[:, 3] = helpfunctions.free_space_path_loss_vec(
+    data_np[:, 3] = free_space_path_loss_vec(
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
         s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
         dist=data_np[:, 0] * 1000.0,
     )
 
-    data_np[:, 4] = helpfunctions.received_power_vec(
+    data_np[:, 4] = received_power_vec(
         p_s=data_np[:, 2],
         g_s_db=np.full(shape=(len(data_np),), fill_value=ui_tx_antenna_type.value),
         g_r_db=np.full(shape=(len(data_np),), fill_value=ui_rx_antenna_type.value),
         dist=data_np[:, 0] * 1000.0,
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
         s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
-        p_unit=helpfunctions.PowerUnit.dBm,
+        p_unit=PowerUnit.dBm,
     )
 
     data_pd = pd.DataFrame(
@@ -402,23 +538,23 @@ def _(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
 
 @app.cell
 def _(
-    helpfunctions,
     np,
-    received_power_dbm,
+    power_50_ohm_to_vpk,
+    received_pwr_dbm,
     ui_adc_n_bits,
     ui_adc_v_max,
     ui_rx_amplifier_dB,
 ):
     # Calculations
-    tx_min_power_1bit_dbm = (
+    tx_min_pwr_1bit_dbm = (
         20 * np.log10(ui_adc_v_max.value / (2**ui_adc_n_bits.value)) + 10 - ui_rx_amplifier_dB.value
     )
 
-    tx_voltage = helpfunctions.power_50_ohm_to_vpk(received_power_dbm + ui_rx_amplifier_dB.value)
+    tx_voltage = power_50_ohm_to_vpk(received_pwr_dbm + ui_rx_amplifier_dB.value)
     tx_voltage_bit_value = tx_voltage * (2**ui_adc_n_bits.value / ui_adc_v_max.value)
 
     # TODO: Conversion of Receiption power and bits
-    return tx_min_power_1bit_dbm, tx_voltage, tx_voltage_bit_value
+    return tx_min_pwr_1bit_dbm, tx_voltage, tx_voltage_bit_value
 
 
 @app.cell
@@ -460,13 +596,13 @@ def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
 @app.cell
 def _(
     callout,
-    free_space_path_loss,
-    free_space_path_loss_dB,
+    fspl,
+    fspl_dB,
     mo,
-    received_power,
-    received_power_dbm,
-    received_power_dbw,
-    tx_min_power_1bit_dbm,
+    received_pwr,
+    received_pwr_dbm,
+    received_pwr_dbw,
+    tx_min_pwr_1bit_dbm,
     tx_voltage,
     tx_voltage_bit_value,
     ui_rx_amplifier_dB,
@@ -480,10 +616,10 @@ def _(
 
         |     | Unit  |     |
         | --- | :---: | --- |
-        | Free-space path loss      | dB<br>frac         | {free_space_path_loss_dB:.2f} dB<br>{free_space_path_loss:.3} |
-        | Received power            | dBW<br>dBm<br>Watt | {received_power_dbw:.2f} dBW<br>{received_power_dbm:.2f} dBm<br>{received_power:.3} W |
+        | Free-space path loss      | dB<br>frac         | {fspl_dB:.2f} dB<br>{fspl:.3} |
+        | Received power            | dBW<br>dBm<br>Watt | {received_pwr_dbw:.2f} dBW<br>{received_pwr_dbm:.2f} dBm<br>{received_pwr:.3} W |
         | Amplification in receiver | dB                 | {ui_rx_amplifier_dB.value:.1f} dB |
-        | Minimum required power<br>(to get first bit flipped) | dBm                | {tx_min_power_1bit_dbm:.1f} dBm |
+        | Minimum required power<br>(to get first bit flipped) | dBm                | {tx_min_pwr_1bit_dbm:.1f} dBm |
         | Voltage                   | V                  | {tx_voltage:.2} V |
         | Voltage in bit number     |                    | {tx_voltage_bit_value:.0f} {voltage_warn_symb} |
         """
