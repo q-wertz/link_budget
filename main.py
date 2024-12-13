@@ -1,11 +1,11 @@
 import marimo
 
-__generated_with = "0.9.34"
+__generated_with = "0.10.1"
 app = marimo.App(width="medium", app_title="Link budget calculator")
 
 
 @app.cell
-def __():
+def _():
     import itertools
 
     import altair as alt
@@ -14,12 +14,11 @@ def __():
     import pandas as pd
 
     from helpfunctions import helpfunctions
-
     return alt, helpfunctions, itertools, mo, np, pd
 
 
 @app.cell
-def __():
+def _():
     # Constants
     speed_of_light = 2.99792458e8
 
@@ -34,7 +33,7 @@ def __():
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         # Link budget calculation
@@ -65,7 +64,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.mermaid(
         r"""
         flowchart LR
@@ -87,13 +86,13 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md("""## Configuration""")
     return
 
 
 @app.cell
-def __(antenna_type_gain, mo):
+def _(antenna_type_gain, mo):
     # Configuration
     ui_signal_freq_mhz = mo.ui.slider(
         start=800.0,
@@ -139,7 +138,7 @@ def __(antenna_type_gain, mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     # TODO: Some "famous" settings that should quickly overwrite the custom chosen values
     ui_presets = mo.ui.dropdown(
         options={
@@ -154,7 +153,7 @@ def __(mo):
 
 
 @app.cell
-def __(
+def _(
     helpfunctions,
     np,
     speed_of_light,
@@ -199,7 +198,7 @@ def __(
 
 
 @app.cell
-def __(
+def _(
     mo,
     signal_tx_power_dbw,
     signal_wavelength,
@@ -217,9 +216,7 @@ def __(
                     mo.hstack(
                         [
                             ui_signal_freq_mhz,
-                            mo.left(
-                                mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")
-                            ),
+                            mo.left(mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")),
                         ],
                         justify="start",
                     ),
@@ -227,8 +224,7 @@ def __(
                         [
                             ui_signal_tx_power,
                             mo.md(
-                                r"$\Rightarrow$ Signal power [dBW]: "
-                                + f"{signal_tx_power_dbw:.1f}dBW"
+                                r"$\Rightarrow$ Signal power [dBW]: " + f"{signal_tx_power_dbw:.1f}dBW"
                             ),
                         ],
                         justify="start",
@@ -243,13 +239,13 @@ def __(
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md("""## Visualization""")
     return
 
 
 @app.cell
-def __(
+def _(
     helpfunctions,
     itertools,
     np,
@@ -298,7 +294,7 @@ def __(
 
 
 @app.cell
-def __(
+def _(
     alt,
     data_pd,
     mo,
@@ -329,13 +325,13 @@ def __(
 
 
 @app.cell
-def __(rx_power_chart):
+def _(rx_power_chart):
     rx_power_chart
     return
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         # Sensing/Visualization
@@ -364,7 +360,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     # Configuration
     ui_rx_amplifier_dB = mo.ui.slider(
         start=0,
@@ -394,7 +390,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
+def _(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
     # UI
     mo.vstack(
         [
@@ -405,7 +401,7 @@ def __(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
 
 
 @app.cell
-def __(
+def _(
     helpfunctions,
     np,
     received_power_dbm,
@@ -426,7 +422,7 @@ def __(
 
 
 @app.cell
-def __(mo, tx_voltage_bit_value, ui_adc_n_bits):
+def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
     def calc_symbol(bit_value: int, n_bits: int) -> str:
         if bit_value > 0.1 * 2**n_bits:
             return "✅"
@@ -434,6 +430,7 @@ def __(mo, tx_voltage_bit_value, ui_adc_n_bits):
             return "⚠️"
         else:
             return "❌"
+
 
     voltage_warn_symb = calc_symbol(bit_value=tx_voltage_bit_value, n_bits=ui_adc_n_bits.value)
 
@@ -461,7 +458,7 @@ def __(mo, tx_voltage_bit_value, ui_adc_n_bits):
 
 
 @app.cell
-def __(
+def _(
     callout,
     free_space_path_loss,
     free_space_path_loss_dB,
@@ -498,7 +495,7 @@ def __(
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         ## Time domain
@@ -516,7 +513,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     # Configuration
     ui_sdr_sample_rate = mo.ui.range_slider(
         start=1,
@@ -538,7 +535,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo, ui_sdr_sample_rate, ui_signal_bit_width):
+def _(mo, ui_sdr_sample_rate, ui_signal_bit_width):
     # UI
     mo.vstack(
         [
@@ -549,7 +546,7 @@ def __(mo, ui_sdr_sample_rate, ui_signal_bit_width):
 
 
 @app.cell
-def __(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
+def _(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
     # Data generation
     sample_rate_data = pd.DataFrame(
         np.arange(
@@ -567,7 +564,7 @@ def __(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
 
 
 @app.cell
-def __(alt, mo, sample_rate_data, ui_signal_bit_width):
+def _(alt, mo, sample_rate_data, ui_signal_bit_width):
     sample_rate_chart = mo.ui.altair_chart(
         alt.Chart(
             sample_rate_data,
@@ -584,7 +581,7 @@ def __(alt, mo, sample_rate_data, ui_signal_bit_width):
 
 
 @app.cell
-def __(sample_rate_chart):
+def _(sample_rate_chart):
     sample_rate_chart
     return
 
