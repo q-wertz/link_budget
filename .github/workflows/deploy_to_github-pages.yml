@@ -13,7 +13,7 @@ jobs:
 
     steps:
       #----------------------------------------------
-      #       check-out repo and set-up python
+      # Check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
         uses: actions/checkout@v4
@@ -24,26 +24,8 @@ jobs:
           python-version: '3.12'
 
       #----------------------------------------------
-      #  -----  install & configure poetry  -----
+      # Install & configure poetry
       #----------------------------------------------    
-      # install dependencies using Gr1N/setup-poetry
-      # - uses: actions/checkout@v3
-      # - uses: actions/setup-python@v4
-      #   with:
-      #     python-version: "3.11"
-      # - uses: Gr1N/setup-poetry@v8
-      # - run: poetry --version
-      
-      # install dependencies using pronovic/setup-poetry (based on snok/install-poetry)
-      # - name: Setup Poetry
-      #   uses: pronovic/setup-poetry@v2
-      #   with:
-      #     version: "1.8.0"
-      #     plugins: "poetry-dynamic-versioning==1.2.0"
-      #     cache-venv: "true"
-      #     cache-poetry: "true"
-      
-      # install dependencies using snok/install-poetry
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -53,7 +35,7 @@ jobs:
           installer-parallel: true
 
       #----------------------------------------------
-      # load cached venv if cache exists
+      # Load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -62,7 +44,7 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
-      # install dependencies if cache does not exist
+      # Install dependencies if cache does not exist
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
