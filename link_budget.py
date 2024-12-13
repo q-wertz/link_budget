@@ -234,7 +234,7 @@ def _(antenna_type_gain, mo):
         show_value=True,
         label="Signal frequency [MHz]",
     )
-    ui_signal_tx_power = mo.ui.slider(
+    ui_signal_tx_power_W = mo.ui.slider(
         start=100.0,
         stop=300.0,
         step=10.0,
@@ -264,7 +264,7 @@ def _(antenna_type_gain, mo):
         ui_distance_km,
         ui_rx_antenna_type,
         ui_signal_freq_mhz,
-        ui_signal_tx_power,
+        ui_signal_tx_power_W,
         ui_tx_antenna_type,
     )
 
@@ -294,7 +294,7 @@ def _(
     ui_distance_km,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
-    ui_signal_tx_power,
+    ui_signal_tx_power_W,
     ui_tx_antenna_type,
 ):
     # Calculations
@@ -307,10 +307,10 @@ def _(
     )
     fspl = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)) ** 2
 
-    signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power.value)
+    signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power_W.value)
 
     received_pwr = received_power(
-        p_s=ui_signal_tx_power.value,
+        p_s=ui_signal_tx_power_W.value,
         g_s_db=ui_tx_antenna_type.value,
         g_r_db=ui_rx_antenna_type.value,
         dist=ui_distance_km.value * 1000.0,
@@ -339,7 +339,7 @@ def _(
     ui_distance_km,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
-    ui_signal_tx_power,
+    ui_signal_tx_power_W,
     ui_tx_antenna_type,
 ):
     # UI
@@ -356,7 +356,7 @@ def _(
                     ),
                     mo.hstack(
                         [
-                            ui_signal_tx_power,
+                            ui_signal_tx_power_W,
                             mo.md(
                                 r"$\Rightarrow$ Signal power [dBW]: " + f"{signal_tx_power_dbw:.1f}dBW"
                             ),
@@ -389,15 +389,15 @@ def _(
     speed_of_light,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
-    ui_signal_tx_power,
+    ui_signal_tx_power_W,
     ui_tx_antenna_type,
 ):
     # Visualization
     distances = np.linspace(0.0, 300.0, 150)
     transmission_powers = (
-        ui_signal_tx_power.value - 50.0,
-        ui_signal_tx_power.value,
-        ui_signal_tx_power.value + 50.0,
+        ui_signal_tx_power_W.value - 50.0,
+        ui_signal_tx_power_W.value,
+        ui_signal_tx_power_W.value + 50.0,
     )
 
     data_np = np.zeros(shape=(len(distances) * len(transmission_powers), 5))
@@ -423,9 +423,6 @@ def _(
     data_pd = pd.DataFrame(
         data_np, columns=["distance_km", "tx_power_W", "tx_power_dBm", "fspl_dB", "rx_power_dBm"]
     )
-
-    # TODO: Fix. Calculation is wrong (update to transmission power ui doesn't update the graph)
-    # mo.ui.table(data_pd)
     return data_np, data_pd, distances, transmission_powers
 
 
@@ -435,13 +432,13 @@ def _(
     data_pd,
     mo,
     ui_rx_antenna_type,
-    ui_signal_tx_power,
+    ui_signal_tx_power_W,
     ui_tx_antenna_type,
 ):
     _rx_power_chart = (
         alt.Chart(
             data_pd,
-            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power.value}W and total antenna gains of {ui_tx_antenna_type.value + ui_rx_antenna_type.value}dBi",
+            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power_W.value}W and total antenna gains of {ui_tx_antenna_type.value + ui_rx_antenna_type.value}dBi",
         )
         .mark_line()
         .encode(
@@ -461,8 +458,16 @@ def _(
 
 
 @app.cell
-def _(rx_power_chart):
-    rx_power_chart
+def _(mo, rx_power_chart):
+    mo.vstack(
+        [
+            rx_power_chart,
+            mo.callout(
+                "🛈 A change in the input power in W does not have a big effect on the graph as it is plotted in dBm",
+                kind="info",
+            ),
+        ]
+    )
     return
 
 
@@ -570,34 +575,34 @@ def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
 
     voltage_warn_symb = calc_symbol(bit_value=tx_voltage_bit_value, n_bits=ui_adc_n_bits.value)
 
-    callout = None
+    low_bit_value_callout = None
     match voltage_warn_symb:
         case "✅":
-            callout = mo.callout(
-                value="The signal should be well visible after the ADC.", kind="success"
+            low_bit_value_callout = mo.callout(
+                value="✅ The signal should be well visible after the ADC.", kind="success"
             )
         case "⚠️":
-            callout = mo.callout(
-                value="The signal might not be well visable, as it is in the lower 10% of what the ADC can convert.",
+            low_bit_value_callout = mo.callout(
+                value="⚠️ The signal might not be well visable, as it is in the lower 10% of what the ADC can convert.",
                 kind="warn",
             )
         case "❌":
-            callout = mo.callout(
-                value="The signal gets lost in the ADC conversion, as the signal is too weak and cannot be represented.",
+            low_bit_value_callout = mo.callout(
+                value="❌ The signal gets lost in the ADC conversion, as the signal is too weak and cannot be represented.",
                 kind="danger",
             )
         case "_":
             mo.MarimoStopError(
                 "There is an error in the implementation/the calc_symbol(…) function was changed."
             )
-    return calc_symbol, callout, voltage_warn_symb
+    return calc_symbol, low_bit_value_callout, voltage_warn_symb
 
 
 @app.cell
 def _(
-    callout,
     fspl,
     fspl_dB,
+    low_bit_value_callout,
     mo,
     received_pwr,
     received_pwr_dbm,
@@ -624,7 +629,7 @@ def _(
         | Voltage in bit number     |                    | {tx_voltage_bit_value:.0f} {voltage_warn_symb} |
         """
             ),
-            callout,
+            low_bit_value_callout,
         ]
     )
     return
