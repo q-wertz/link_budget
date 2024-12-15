@@ -438,7 +438,7 @@ def _(
     _rx_power_chart = (
         alt.Chart(
             data_pd,
-            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power_W.value}W and total antenna gains of {ui_tx_antenna_type.value + ui_rx_antenna_type.value}dBi",
+            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power_W.value:.1f}W and total antenna gains of {(ui_tx_antenna_type.value + ui_rx_antenna_type.value):.1f}dBi",
         )
         .mark_line()
         .encode(
