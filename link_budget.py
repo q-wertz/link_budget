@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.1"
+__generated_with = "0.10.2"
 app = marimo.App(width="medium", app_title="Link budget calculator")
 
 
@@ -463,7 +463,7 @@ def _(mo, rx_power_chart):
         [
             rx_power_chart,
             mo.callout(
-                "🛈 A change in the input power in W does not have a big effect on the graph as it is plotted in dBm",
+                "ℹ️ A change in the input power in W does not have a big effect on the graph as it is plotted in dBm",
                 kind="info",
             ),
         ]
