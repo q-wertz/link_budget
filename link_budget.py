@@ -202,9 +202,9 @@ def _(mo):
         flowchart LR
           subgraph Transmitter
             Tr(Transmitter) --> Tr_Am("Amplifier<br>(optional)")
-            Tr_Am --> Tr_An("Transmitter antenna 📡")
+            Tr_Am --> Tr_An("📡<br>Transmitter antenna")
           end
-          Tr_An -.->|Transmission channel| Re_An("📡 Receiver antenna")
+          Tr_An -. |☁️<br>Transmission channel| .-> Re_An("📡<br>Receiver antenna")
           subgraph Receiver
             Re_An --> Re_Am("Amplifier<br>(optional)")
             Re_Am --> Re_ADC("Analog-to-digital converter (ADC)")
