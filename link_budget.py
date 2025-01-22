@@ -1,26 +1,25 @@
 import marimo
 
-__generated_with = "0.10.2"
+__generated_with = "0.10.15"
 app = marimo.App(width="medium", app_title="Link budget calculator")
 
 
 @app.cell
-def _():
+def code_imports():
     import enum
     import itertools
 
     import altair as alt
     import marimo as mo
     import numpy as np
+    import scipy.constants as spc
     import pandas as pd
-    return alt, enum, itertools, mo, np, pd
+    return alt, enum, itertools, mo, np, pd, spc
 
 
 @app.cell
-def _():
+def code_constants():
     # Constants
-    speed_of_light = 2.99792458e8
-
     antenna_type_gain: dict[str, float] = {
         # Type:  Gain [dBi]
         "Omnidirectional": 0.0,
@@ -28,11 +27,11 @@ def _():
         "λ/2 dipole (ideal)": 2.15,
         "λ/4 monopole (ideal)": 5.15,
     }
-    return antenna_type_gain, speed_of_light
+    return (antenna_type_gain,)
 
 
 @app.cell
-def _(enum, np):
+def code_helpfunctions(enum, np, spc):
     # Helpfunctions
     class PowerUnit(enum.Enum):
         """Enumeration for the different units a power can be given."""
@@ -153,10 +152,50 @@ def _(enum, np):
 
 
     power_50_ohm_to_vpk_vec = np.vectorize(power_50_ohm_to_vpk)
+
+
+    def noise_power(temp_kelvin: float, bw: float, p_unit: PowerUnit) -> float:
+        """Calculate the noise power from the temperature.
+
+        Parameters
+        ----------
+        temp_kelvin
+            The temperature (in Kelvin).
+        bw
+            The total bandwidth over which the noise power is measured (in Hertz).
+        p_unit
+            The power unit of the return value.
+
+        Returns
+        -------
+        float
+            The noise power.
+        """
+
+        match p_unit:
+            case PowerUnit.W:
+                if np.isclose(bw, 0.0):
+                    return 0.0
+                return spc.k * temp_kelvin * bw
+            case PowerUnit.dBW:
+                if np.isclose(bw, 0.0):
+                    return -np.inf
+                return -228.6 + 10 * np.log10(temp_kelvin) + 10 * np.log10(bw)
+            case PowerUnit.dBm:
+                if np.isclose(bw, 0.0):
+                    return -np.inf
+                return -228.6 + 10 * np.log10(temp_kelvin) + 10 * np.log10(bw) + 30.0
+            case _:
+                raise ValueError(f"'p_unit' value {p_unit} is invalid.")
+
+
+    noise_power_vec = np.vectorize(noise_power)
     return (
         PowerUnit,
         free_space_path_loss,
         free_space_path_loss_vec,
+        noise_power,
+        noise_power_vec,
         power_50_ohm_to_vpk,
         power_50_ohm_to_vpk_vec,
         received_power,
@@ -165,7 +204,7 @@ def _(enum, np):
 
 
 @app.cell
-def _(mo):
+def md_fspl(mo):
     mo.md(
         r"""
         # Link budget calculation
@@ -196,7 +235,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
+def mermaid_visualization(mo):
     mo.mermaid(
         r"""
         flowchart LR
@@ -290,7 +329,7 @@ def _(
     free_space_path_loss,
     np,
     received_power,
-    speed_of_light,
+    spc,
     ui_distance_km,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
@@ -298,14 +337,14 @@ def _(
     ui_tx_antenna_type,
 ):
     # Calculations
-    signal_wavelength = speed_of_light / (ui_signal_freq_mhz.value * 10**6)
+    signal_wavelength = spc.speed_of_light / (ui_signal_freq_mhz.value * 10**6)
 
     fspl_dB = free_space_path_loss(
         freq=ui_signal_freq_mhz.value * 10**6,
-        s_vel=speed_of_light,
+        s_vel=spc.speed_of_light,
         dist=ui_distance_km.value * 1000.0,
     )
-    fspl = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (speed_of_light)) ** 2
+    fspl = ((4.0 * np.pi * ui_distance_km.value * 1000.0) / (spc.speed_of_light)) ** 2
 
     signal_tx_power_dbw = 10 * np.log10(ui_signal_tx_power_W.value)
 
@@ -315,7 +354,7 @@ def _(
         g_r_db=ui_rx_antenna_type.value,
         dist=ui_distance_km.value * 1000.0,
         freq=ui_signal_freq_mhz.value * 10**6,
-        s_vel=speed_of_light,
+        s_vel=spc.speed_of_light,
         p_unit=PowerUnit.W,
     )
     received_pwr_dbw: float = 10 * np.log10(received_pwr)
@@ -386,7 +425,7 @@ def _(
     np,
     pd,
     received_power_vec,
-    speed_of_light,
+    spc,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
     ui_signal_tx_power_W,
@@ -406,7 +445,7 @@ def _(
 
     data_np[:, 3] = free_space_path_loss_vec(
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
-        s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
+        s_vel=np.full(shape=(len(data_np),), fill_value=spc.speed_of_light),
         dist=data_np[:, 0] * 1000.0,
     )
 
@@ -416,7 +455,7 @@ def _(
         g_r_db=np.full(shape=(len(data_np),), fill_value=ui_rx_antenna_type.value),
         dist=data_np[:, 0] * 1000.0,
         freq=np.full(shape=(len(data_np),), fill_value=ui_signal_freq_mhz.value * 10**6),
-        s_vel=np.full(shape=(len(data_np),), fill_value=speed_of_light),
+        s_vel=np.full(shape=(len(data_np),), fill_value=spc.speed_of_light),
         p_unit=PowerUnit.dBm,
     )
 
@@ -438,7 +477,7 @@ def _(
     _rx_power_chart = (
         alt.Chart(
             data_pd,
-            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power_W.value:.1f}W and total antenna gains of {(ui_tx_antenna_type.value + ui_rx_antenna_type.value):.1f}dBi",
+            title=f"Signal power at a receiver for a transmission power of {ui_signal_tx_power_W.value}W and total antenna gains of {ui_tx_antenna_type.value + ui_rx_antenna_type.value}dBi",
         )
         .mark_line()
         .encode(
@@ -709,7 +748,7 @@ def _(alt, mo, sample_rate_data, ui_signal_bit_width):
     sample_rate_chart = mo.ui.altair_chart(
         alt.Chart(
             sample_rate_data,
-            title=f"The number of datapoints a SDR has for a signal with a duration of {ui_signal_bit_width.value:.1f} µs",
+            title=f"The number of datapoints a SDR takes of a signal with a duration of {ui_signal_bit_width.value:.1f} µs",
         )
         .mark_line()
         .encode(
@@ -724,6 +763,140 @@ def _(alt, mo, sample_rate_data, ui_signal_bit_width):
 @app.cell
 def _(sample_rate_chart):
     sample_rate_chart
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        ## Noise level
+
+        - **Noise power $P_n$:**
+
+            $$
+            \begin{align}
+              P_n &= \underbrace{k_B T_n}_{N_0} B \\
+              P_n^\text{dB} &= \underbrace{-228.6 + 10\,\log_{10}{T_n}}_{N_0^\text{dB}} + 10\,\log_{10}{B}
+            \end{align}
+            $$
+
+            where
+
+            - $P_n$ is the noise power (in Watt)
+            - $T_n$ is the noise temperature (in Kelvin)
+            - $B$ is the total bandwidth (in Hertz) over which that noise power is measured
+            - $N_0$ is the **Noise power density $N_0$** which can be expressed in dB as:
+
+                $$
+                N_0^\text{dB} = -228.5 + 10 \cdot \log{T_n}
+                $$
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    # Configuration
+    ui_noise_temp_degree = mo.ui.slider(
+        start=-20.0,
+        stop=60.0,
+        step=0.5,
+        value=20.0,
+        show_value=True,
+        label="Noise temperature [°C]",
+    )
+    ui_noise_bandwidth_MHz = mo.ui.slider(
+        start=0.0,
+        stop=200.0,
+        step=1.0,
+        value=100.0,
+        show_value=True,
+        label="Total bandwidth over which the noise power is measured [MHz]",
+    )
+    return ui_noise_bandwidth_MHz, ui_noise_temp_degree
+
+
+@app.cell
+def _(
+    PowerUnit,
+    noise_power,
+    ui_noise_bandwidth_MHz,
+    ui_noise_temp_degree,
+):
+    noise_temp_kelvin = 273.15 + ui_noise_temp_degree.value
+
+    noise_power_value = noise_power(
+        temp_kelvin=noise_temp_kelvin, bw=ui_noise_bandwidth_MHz.value * 10**6, p_unit=PowerUnit.dBm
+    )
+    return noise_power_value, noise_temp_kelvin
+
+
+@app.cell
+def _(
+    mo,
+    noise_power_value,
+    noise_temp_kelvin,
+    ui_noise_bandwidth_MHz,
+    ui_noise_temp_degree,
+):
+    # UI
+    mo.vstack(
+        [
+            mo.hstack(
+                [
+                    ui_noise_temp_degree,
+                    mo.left(mo.md(r"$\Rightarrow$" + f"{noise_temp_kelvin:.2f}K")),
+                ]
+            ),
+            ui_noise_bandwidth_MHz,
+            mo.md(r"$\Rightarrow$ The resulting noise power is: " + f"{noise_power_value:.1f}dBm"),
+        ]
+    )
+    return
+
+
+@app.cell
+def _(PowerUnit, noise_power_vec, noise_temp_kelvin, np, pd):
+    # Data generation
+    noise_power_data = pd.DataFrame(
+        np.linspace(0, 200.0, num=200),
+        columns=["bw_mhz"],
+    )
+
+    noise_power_data["noise_power_dbm"] = noise_power_vec(
+        temp_kelvin=np.full(shape=(len(noise_power_data),), fill_value=noise_temp_kelvin),
+        bw=noise_power_data.loc[:, "bw_mhz"] * 1e6,
+        p_unit=np.full(shape=(len(noise_power_data),), fill_value=PowerUnit.dBm),
+    )
+    return (noise_power_data,)
+
+
+@app.cell
+def _(alt, mo, noise_power_data, ui_noise_temp_degree):
+    noise_power_chart = mo.ui.altair_chart(
+        alt.Chart(
+            noise_power_data,
+            title=f"Noise power over bandwidth at a noise temperature of {ui_noise_temp_degree.value:.1f} °C",
+        )
+        .mark_line()
+        .encode(
+            x=alt.X("bw_mhz").title("Bandwidth [MHz]"),
+            y=alt.Y("noise_power_dbm").title("Noise power [dBm]"),
+        )
+    )
+    return (noise_power_chart,)
+
+
+@app.cell
+def _(noise_power_chart):
+    noise_power_chart
+    return
+
+
+@app.cell
+def _():
     return
 
 

@@ -26,6 +26,7 @@ numpy = ">=2.0.0"
 marimo = "^0.10.1"
 altair = "^5.5.0"
 pandas = "^2.2.3"
+scipy = "^1.15.1"
 
 [tool.poetry.group.dev.dependencies]
 # Linters & Autoformatters
