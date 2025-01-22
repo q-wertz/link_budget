@@ -245,11 +245,15 @@
             "source.organizeImports": "explicit"
         }
     },
-    // Jupyter notebooks
+    // (Jupyter) notebooks
     "notebook.formatOnSave.enabled": true,
     "notebook.codeActionsOnSave": {
         "source.organizeImports": "explicit"
     },
+    "notebook.defaultFormatter": "charliermarsh.ruff",
+    // Marimo extension
+    "marimo.marimoPath": "${workspaceFolder}/.venv/bin/marimo",
+    "marimo.browserType": "embedded",
     "markiscodecoverage.searchCriteria": "coverage.lcov",
     "markiscodecoverage.enableOnStartup": false,
     "graphviz-interactive-preview.debouncingInterval": 500,

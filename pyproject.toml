@@ -1,3 +1,30 @@
+[project]
+name = "link_budget_calculator"
+version = "0.1.0"
+description = "Tool for calculating the link budget of transmissions and ."
+authors = [
+    {name = "Clemens Sonnleitner", email="clemens.sonnleitner@web.de"}
+]
+maintainers = [
+    {name = "Clemens Sonnleitner", email="clemens.sonnleitner@web.de"}  
+]
+readme = "README.md"
+keywords = ["signal", "attenuation", "frequency", "noise"]
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "numpy >=2.0.0",
+    "marimo >=0.10.1",
+    "altair >=5.5.0",
+    "pandas >=2.2.3",
+    "scipy >=1.15.1",
+]
+
+[project.urls]
+# Homepage = ""
+# Documentation = ""
+Repository = "https://github.com/q-wertz/link_budget"
+Issues = "https://github.com/q-wertz/link_budget/issues"
+# Changelog = ""
 
 [build-system]
 # Poetry (https://python-poetry.org/docs) is used for building and resolving dependencies.
@@ -6,27 +33,8 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
-name = "Link budget calculator"
-version = "0.1.0"
-description = "Tool for calculating the link budget of transmissions and ."
-authors = ["Clemens Sonnleitner <clemens.sonnleitner@web.de>"]
-maintainers = ["Clemens Sonnleitner <clemens.sonnleitner@web.de>"]
-readme = "README.md"
-repository = "https://github.com/q-wertz/link_budget"
-#documentation = ""
-keywords = ["signal", "attenuation", "frequency"]
 package-mode = false
-
-[tool.poetry.urls]
-issues = "https://github.com/q-wertz/link_budget/issues"
-
-[tool.poetry.dependencies]
-python = ">=3.11, <3.13"
-numpy = ">=2.0.0"
-marimo = "^0.10.1"
-altair = "^5.5.0"
-pandas = "^2.2.3"
-scipy = "^1.15.1"
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 # Linters & Autoformatters
