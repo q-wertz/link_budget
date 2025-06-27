@@ -10,13 +10,14 @@ maintainers = [
 ]
 readme = "README.md"
 keywords = ["signal", "attenuation", "frequency", "noise"]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "numpy >=2.0.0",
     "marimo >=0.10.1",
     "altair >=5.5.0",
     "pandas >=2.2.3",
     "scipy >=1.15.1",
+    "pyarrow (>=20.0.0,<21.0.0)",
 ]
 
 [project.urls]
