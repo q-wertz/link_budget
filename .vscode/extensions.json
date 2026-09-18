@@ -7,7 +7,7 @@
         // Instead basedpyright:
         "detachhead.basedpyright",
         "streetsidesoftware.code-spell-checker",
-        "gruntfuggly.todo-tree",
+        "FanaticPythoner.better-todo-tree",
         "njpwerner.autodocstring",
         "charliermarsh.ruff",
         "vscode-icons-team.vscode-icons",
