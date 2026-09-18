@@ -17,24 +17,24 @@ poetry install
 poetry install --no-dev
 ```
 
-If you want to open a shell in the virtual environment, simply run
+If you want to activate the virtual environment, simply run
 
 ```bash
-poetry shell
+poetry env activate
 ```
 
 You can run the marimo notebook using
 ```bash
 # For editing
-marimo edit main.py
+marimo edit link_budget.py
 
 # Start in read only web view
-marimo run main.py
+marimo run link_budget.py
 ```
 
 ## Additional features
 
-If you would like to see more features open an issue or a pull request if you want to contribute.
+If you would like to see more features [open a new issue](https://github.com/q-wertz/link_budget/issues) or a pull request if you want to contribute.
 
 
 ## Contributing
