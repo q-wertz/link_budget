@@ -1,11 +1,9 @@
 import marimo
 
-__generated_with = "0.10.15"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium", app_title="Link budget calculator")
 
-
-@app.cell
-def code_imports():
+with app.setup:
     import enum
     import itertools
 
@@ -14,7 +12,6 @@ def code_imports():
     import numpy as np
     import scipy.constants as spc
     import pandas as pd
-    return alt, enum, itertools, mo, np, pd, spc
 
 
 @app.cell
@@ -31,7 +28,7 @@ def code_constants():
 
 
 @app.cell
-def code_helpfunctions(enum, np, spc):
+def code_helpfunctions():
     # Helpfunctions
     class PowerUnit(enum.Enum):
         """Enumeration for the different units a power can be given."""
@@ -39,7 +36,6 @@ def code_helpfunctions(enum, np, spc):
         W = enum.auto()
         dBW = enum.auto()
         dBm = enum.auto()
-
 
     # --------------------------------------------------------------------------------------------------
     # Signal power calculations
@@ -72,9 +68,7 @@ def code_helpfunctions(enum, np, spc):
 
         return l_db
 
-
     free_space_path_loss_vec = np.vectorize(free_space_path_loss)
-
 
     def received_power(
         p_s: float,
@@ -128,9 +122,7 @@ def code_helpfunctions(enum, np, spc):
             case _:
                 raise ValueError(f"'p_unit' value {p_unit} is invalid.")
 
-
     received_power_vec = np.vectorize(received_power, excluded=("p_unit",))
-
 
     # --------------------------------------------------------------------------------------------------
     # Other
@@ -150,9 +142,7 @@ def code_helpfunctions(enum, np, spc):
         """
         return 10 ** ((p_dbm - 10.0) / 20.0)
 
-
     power_50_ohm_to_vpk_vec = np.vectorize(power_50_ohm_to_vpk)
-
 
     def noise_power(temp_kelvin: float, bw: float, p_unit: PowerUnit) -> float:
         """Calculate the noise power from the temperature.
@@ -188,7 +178,6 @@ def code_helpfunctions(enum, np, spc):
             case _:
                 raise ValueError(f"'p_unit' value {p_unit} is invalid.")
 
-
     noise_power_vec = np.vectorize(noise_power)
     return (
         PowerUnit,
@@ -197,45 +186,42 @@ def code_helpfunctions(enum, np, spc):
         noise_power,
         noise_power_vec,
         power_50_ohm_to_vpk,
-        power_50_ohm_to_vpk_vec,
         received_power,
         received_power_vec,
     )
 
 
 @app.cell
-def md_fspl(mo):
-    mo.md(
-        r"""
-        # Link budget calculation
+def md_fspl():
+    mo.md(r"""
+    # Link budget calculation
 
-        Calculation of the link budget based on free-space path loss:
+    Calculation of the link budget based on free-space path loss:
 
-        $$
-        \text{FSPL}[\text{dB}] = 20 \log_{10}(d) + 20 \log_{10}(f) + 20 \log_{10} \left( \frac{4 \pi}{c} \right)
-        $$
+    $$
+    \text{FSPL}[\text{dB}] = 20 \log_{10}(d) + 20 \log_{10}(f) + 20 \log_{10} \left( \frac{4 \pi}{c} \right)
+    $$
 
-        The power at the receiver $P_r$ can be estimated by
+    The power at the receiver $P_r$ can be estimated by
 
-        $$
-        \begin{align*}
-        P_r[\text{dB}] &= P_s[\text{dB}] + G_s - \text{FSPL}[\text{dB}] + G_r \\
-        &= P_s[\text{dB}] + G_s - 20 \log_{10}(d) - 20 \log_{10}(f) - 20 \log_{10} \left( \frac{4 \pi}{c} \right) + G_r 
-        \end{align*}
-        $$
+    $$
+    \begin{align*}
+    P_r[\text{dB}] &= P_s[\text{dB}] + G_s - \text{FSPL}[\text{dB}] + G_r \\
+    &= P_s[\text{dB}] + G_s - 20 \log_{10}(d) - 20 \log_{10}(f) - 20 \log_{10} \left( \frac{4 \pi}{c} \right) + G_r
+    \end{align*}
+    $$
 
-        where $G_s$ and $G_r$ are the sender and receiver antenna Gains (in dBi).
+    where $G_s$ and $G_r$ are the sender and receiver antenna Gains (in dBi).
 
-        ## Usual setup
+    ## Usual setup
 
-        A naive approach leads to a schema similar to the following:
-        """
-    )
+    A naive approach leads to a schema similar to the following:
+    """)
     return
 
 
 @app.cell
-def mermaid_visualization(mo):
+def mermaid_visualization():
     mo.mermaid(
         r"""
         flowchart LR
@@ -257,13 +243,15 @@ def mermaid_visualization(mo):
 
 
 @app.cell
-def _(mo):
-    mo.md("""## Configuration""")
+def _():
+    mo.md("""
+    ## Configuration
+    """)
     return
 
 
 @app.cell
-def _(antenna_type_gain, mo):
+def _(antenna_type_gain: dict[str, float]):
     # Configuration
     ui_signal_freq_mhz = mo.ui.slider(
         start=800.0,
@@ -309,7 +297,7 @@ def _(antenna_type_gain, mo):
 
 
 @app.cell(disabled=True)
-def _(mo):
+def _():
     # TODO: Some "famous" settings that should quickly overwrite the custom chosen values
     ui_presets = mo.ui.dropdown(
         options={
@@ -320,16 +308,14 @@ def _(mo):
         value="ADS-B (1090 MHz)",
         label="Select a signal type:",
     )
-    return (ui_presets,)
+    return
 
 
 @app.cell
 def _(
     PowerUnit,
     free_space_path_loss,
-    np,
     received_power,
-    spc,
     ui_distance_km,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
@@ -372,7 +358,6 @@ def _(
 
 @app.cell
 def _(
-    mo,
     signal_tx_power_dbw,
     signal_wavelength,
     ui_distance_km,
@@ -389,7 +374,9 @@ def _(
                     mo.hstack(
                         [
                             ui_signal_freq_mhz,
-                            mo.left(mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")),
+                            mo.left(
+                                mo.md(r"$\Rightarrow$ Wavelength: " + f"{signal_wavelength:.2f}m")
+                            ),
                         ],
                         justify="start",
                     ),
@@ -397,7 +384,8 @@ def _(
                         [
                             ui_signal_tx_power_W,
                             mo.md(
-                                r"$\Rightarrow$ Signal power [dBW]: " + f"{signal_tx_power_dbw:.1f}dBW"
+                                r"$\Rightarrow$ Signal power [dBW]: "
+                                + f"{signal_tx_power_dbw:.1f}dBW"
                             ),
                         ],
                         justify="start",
@@ -412,8 +400,10 @@ def _(
 
 
 @app.cell
-def _(mo):
-    mo.md("""## Visualization""")
+def _():
+    mo.md("""
+    ## Visualization
+    """)
     return
 
 
@@ -421,11 +411,7 @@ def _(mo):
 def _(
     PowerUnit,
     free_space_path_loss_vec,
-    itertools,
-    np,
-    pd,
     received_power_vec,
-    spc,
     ui_rx_antenna_type,
     ui_signal_freq_mhz,
     ui_signal_tx_power_W,
@@ -462,18 +448,11 @@ def _(
     data_pd = pd.DataFrame(
         data_np, columns=["distance_km", "tx_power_W", "tx_power_dBm", "fspl_dB", "rx_power_dBm"]
     )
-    return data_np, data_pd, distances, transmission_powers
+    return (data_pd,)
 
 
 @app.cell
-def _(
-    alt,
-    data_pd,
-    mo,
-    ui_rx_antenna_type,
-    ui_signal_tx_power_W,
-    ui_tx_antenna_type,
-):
+def _(data_pd, ui_rx_antenna_type, ui_signal_tx_power_W, ui_tx_antenna_type):
     _rx_power_chart = (
         alt.Chart(
             data_pd,
@@ -490,6 +469,7 @@ def _(
             ).title("RX Power [dBm]"),
             color=alt.Color("tx_power_W:N").title("TX Power [W]"),
         )
+        .properties(width="container")
     )
 
     rx_power_chart = mo.ui.altair_chart(_rx_power_chart)
@@ -497,7 +477,7 @@ def _(
 
 
 @app.cell
-def _(mo, rx_power_chart):
+def _(rx_power_chart):
     mo.vstack(
         [
             rx_power_chart,
@@ -511,36 +491,34 @@ def _(mo, rx_power_chart):
 
 
 @app.cell
-def _(mo):
-    mo.md(
-        r"""
-        # Sensing/Visualization
+def _():
+    mo.md(r"""
+    # Sensing/Visualization
 
-        ## ADC
+    ## ADC
 
-        The received power at a 50 $\Omega$ system corresponds to a voltage of 
+    The received power at a 50 $\Omega$ system corresponds to a voltage of
 
-        $$
-        U_r = 10^{\frac{P[\text{dBm}] - 10}{20}} \text{V}
-        $$
+    $$
+    U_r = 10^{\frac{P[\text{dBm}] - 10}{20}} \text{V}
+    $$
 
-        Depending on the voltage range and resolution of the analog to digital converter (ADC) small voltages might not be "sensed" by the DAC. The the minimum voltage a signal has to trigger at the DAC has to be:
+    Depending on the voltage range and resolution of the analog to digital converter (ADC) small voltages might not be "sensed" by the DAC. The the minimum voltage a signal has to trigger at the DAC has to be:
 
-        $$
-        \begin{align*}
-            U_\text{min} &\geq \frac{U_\text{max}}{2^{N_\text{bit}}} \\
-            \Rightarrow{}\quad P_{r,\,\text{min}} &= \left( 20 \cdot \log \left(\frac{U_\text{max}}{2^{N_\text{bit}}} \right) + 10 \right) \text{dBm}
-        \end{align*}
-        $$
+    $$
+    \begin{align*}
+        U_\text{min} &\geq \frac{U_\text{max}}{2^{N_\text{bit}}} \\
+        \Rightarrow{}\quad P_{r,\,\text{min}} &= \left( 20 \cdot \log \left(\frac{U_\text{max}}{2^{N_\text{bit}}} \right) + 10 \right) \text{dBm}
+    \end{align*}
+    $$
 
-        where $N_\text{bit}$ is the number of bits of the DAC and $U_\text{max}$ is the maximum allowed voltage of the DAC input.
-        """
-    )
+    where $N_\text{bit}$ is the number of bits of the DAC and $U_\text{max}$ is the maximum allowed voltage of the DAC input.
+    """)
     return
 
 
 @app.cell
-def _(mo):
+def _():
     # Configuration
     ui_rx_amplifier_dB = mo.ui.slider(
         start=0,
@@ -570,7 +548,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
+def _(ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
     # UI
     mo.vstack(
         [
@@ -582,9 +560,8 @@ def _(mo, ui_adc_n_bits, ui_adc_v_max, ui_rx_amplifier_dB):
 
 @app.cell
 def _(
-    np,
     power_50_ohm_to_vpk,
-    received_pwr_dbm,
+    received_pwr_dbm: float,
     ui_adc_n_bits,
     ui_adc_v_max,
     ui_rx_amplifier_dB,
@@ -602,7 +579,7 @@ def _(
 
 
 @app.cell
-def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
+def _(tx_voltage_bit_value, ui_adc_n_bits):
     def calc_symbol(bit_value: int, n_bits: int) -> str:
         if bit_value > 0.1 * 2**n_bits:
             return "✅"
@@ -610,7 +587,6 @@ def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
             return "⚠️"
         else:
             return "❌"
-
 
     voltage_warn_symb = calc_symbol(bit_value=tx_voltage_bit_value, n_bits=ui_adc_n_bits.value)
 
@@ -634,7 +610,7 @@ def _(mo, tx_voltage_bit_value, ui_adc_n_bits):
             mo.MarimoStopError(
                 "There is an error in the implementation/the calc_symbol(…) function was changed."
             )
-    return calc_symbol, low_bit_value_callout, voltage_warn_symb
+    return low_bit_value_callout, voltage_warn_symb
 
 
 @app.cell
@@ -642,10 +618,9 @@ def _(
     fspl,
     fspl_dB,
     low_bit_value_callout,
-    mo,
     received_pwr,
-    received_pwr_dbm,
-    received_pwr_dbw,
+    received_pwr_dbm: float,
+    received_pwr_dbw: float,
     tx_min_pwr_1bit_dbm,
     tx_voltage,
     tx_voltage_bit_value,
@@ -675,25 +650,23 @@ def _(
 
 
 @app.cell
-def _(mo):
-    mo.md(
-        r"""
-        ## Time domain
+def _():
+    mo.md(r"""
+    ## Time domain
 
-        Calculate the number of points a signal has by a set SDR sample rate $f_s$:
+    Calculate the number of points a signal has by a set SDR sample rate $f_s$:
 
-        $$
-        N = T \cdot f_s
-        $$
+    $$
+    N = T \cdot f_s
+    $$
 
-        where $T$ is the duration of the signal (in s).
-        """
-    )
+    where $T$ is the duration of the signal (in s).
+    """)
     return
 
 
 @app.cell
-def _(mo):
+def _():
     # Configuration
     ui_sdr_sample_rate = mo.ui.range_slider(
         start=1,
@@ -715,7 +688,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo, ui_sdr_sample_rate, ui_signal_bit_width):
+def _(ui_sdr_sample_rate, ui_signal_bit_width):
     # UI
     mo.vstack(
         [
@@ -726,7 +699,7 @@ def _(mo, ui_sdr_sample_rate, ui_signal_bit_width):
 
 
 @app.cell
-def _(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
+def _(ui_sdr_sample_rate, ui_signal_bit_width):
     # Data generation
     sample_rate_data = pd.DataFrame(
         np.arange(
@@ -744,7 +717,7 @@ def _(np, pd, ui_sdr_sample_rate, ui_signal_bit_width):
 
 
 @app.cell
-def _(alt, mo, sample_rate_data, ui_signal_bit_width):
+def _(sample_rate_data, ui_signal_bit_width):
     sample_rate_chart = mo.ui.altair_chart(
         alt.Chart(
             sample_rate_data,
@@ -756,6 +729,7 @@ def _(alt, mo, sample_rate_data, ui_signal_bit_width):
             y=alt.Y("datapoints").title("N datapoints"),
             # color=alt.Color("tx_power_W:N").title("TX Power [W]"),
         )
+        .properties(width="container")
     )
     return (sample_rate_chart,)
 
@@ -767,37 +741,35 @@ def _(sample_rate_chart):
 
 
 @app.cell
-def _(mo):
-    mo.md(
-        r"""
-        ## Noise level
+def _():
+    mo.md(r"""
+    ## Noise level
 
-        - **Noise power $P_n$:**
+    - **Noise power $P_n$:**
+
+        $$
+        \begin{align}
+          P_n &= \underbrace{k_B T_n}_{N_0} B \\
+          P_n^\text{dB} &= \underbrace{-228.6 + 10\,\log_{10}{T_n}}_{N_0^\text{dB}} + 10\,\log_{10}{B}
+        \end{align}
+        $$
+
+        where
+
+        - $P_n$ is the noise power (in Watt)
+        - $T_n$ is the noise temperature (in Kelvin)
+        - $B$ is the total bandwidth (in Hertz) over which that noise power is measured
+        - $N_0$ is the **Noise power density $N_0$** which can be expressed in dB as:
 
             $$
-            \begin{align}
-              P_n &= \underbrace{k_B T_n}_{N_0} B \\
-              P_n^\text{dB} &= \underbrace{-228.6 + 10\,\log_{10}{T_n}}_{N_0^\text{dB}} + 10\,\log_{10}{B}
-            \end{align}
+            N_0^\text{dB} = -228.5 + 10 \cdot \log{T_n}
             $$
-
-            where
-
-            - $P_n$ is the noise power (in Watt)
-            - $T_n$ is the noise temperature (in Kelvin)
-            - $B$ is the total bandwidth (in Hertz) over which that noise power is measured
-            - $N_0$ is the **Noise power density $N_0$** which can be expressed in dB as:
-
-                $$
-                N_0^\text{dB} = -228.5 + 10 \cdot \log{T_n}
-                $$
-        """
-    )
+    """)
     return
 
 
 @app.cell
-def _(mo):
+def _():
     # Configuration
     ui_noise_temp_degree = mo.ui.slider(
         start=-20.0,
@@ -819,12 +791,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    PowerUnit,
-    noise_power,
-    ui_noise_bandwidth_MHz,
-    ui_noise_temp_degree,
-):
+def _(PowerUnit, noise_power, ui_noise_bandwidth_MHz, ui_noise_temp_degree):
     noise_temp_kelvin = 273.15 + ui_noise_temp_degree.value
 
     noise_power_value = noise_power(
@@ -835,7 +802,6 @@ def _(
 
 @app.cell
 def _(
-    mo,
     noise_power_value,
     noise_temp_kelvin,
     ui_noise_bandwidth_MHz,
@@ -858,7 +824,7 @@ def _(
 
 
 @app.cell
-def _(PowerUnit, noise_power_vec, noise_temp_kelvin, np, pd):
+def _(PowerUnit, noise_power_vec, noise_temp_kelvin):
     # Data generation
     noise_power_data = pd.DataFrame(
         np.linspace(0, 200.0, num=200),
@@ -874,7 +840,7 @@ def _(PowerUnit, noise_power_vec, noise_temp_kelvin, np, pd):
 
 
 @app.cell
-def _(alt, mo, noise_power_data, ui_noise_temp_degree):
+def _(noise_power_data, ui_noise_temp_degree):
     noise_power_chart = mo.ui.altair_chart(
         alt.Chart(
             noise_power_data,
@@ -885,6 +851,7 @@ def _(alt, mo, noise_power_data, ui_noise_temp_degree):
             x=alt.X("bw_mhz").title("Bandwidth [MHz]"),
             y=alt.Y("noise_power_dbm").title("Noise power [dBm]"),
         )
+        .properties(width="container")
     )
     return (noise_power_chart,)
 
