@@ -16,9 +16,9 @@ jobs:
       # Check-out repository and set-up python
       # ----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -44,7 +44,7 @@ jobs:
           uv run marimo export html-wasm link_budget.py -o build_marimo --mode run
 
       - name: 📦 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build_marimo/
 
@@ -63,6 +63,6 @@ jobs:
     steps:
       - name: 🌐 Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         with:
           artifact_name: github-pages
