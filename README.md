@@ -11,25 +11,16 @@ For packaging and dependency management [Poetry](https://python-poetry.org/) is 
 You can simply set up a new virtual environment with the required packages (which is placed in the project subfolder `.venv`) by running:
 
 ```bash
-poetry install
-
-# If you want to install without the development dependencies use
-poetry install --no-dev
-```
-
-If you want to activate the virtual environment, simply run
-
-```bash
-poetry env activate
+uv venv
 ```
 
 You can run the marimo notebook using
 ```bash
 # For editing
-marimo edit link_budget.py
+uv run marimo edit link_budget.py
 
 # Start in read only web view
-marimo run link_budget.py
+uv run marimo run link_budget.py
 ```
 
 ## Additional features
@@ -49,21 +40,6 @@ Please read the following guidelines for contributing code:
 #### Poetry
 Updating dependencies can be done using
 ```bash
-# Update the poetry.lock file
-poetry update
-```
-Updating also the set requirements from the `pyproject.toml` file can be done using a poetry plugin:
-```bash
-# Install the plugin
-poetry self add poetry-plugin-up
-# Update the dependency list
-poetry up
-# To check for outdated dependencies you can use
-poetry show --outdated
-```
-
-#### Deptry
-To check for obsolete, missing or transitive dependencies in `pyproject.toml` from the project root folder run:
-```shell
-deptry .
+# Update the uv.lock file
+uv sync --upgrade
 ```
